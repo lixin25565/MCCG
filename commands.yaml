@@ -1,0 +1,515 @@
+# Minecraft 1.21.1 命令表（YAML）- 根据官方Wiki修正版
+# 层级说明：根命令 level:1，一级子命令 level:2，二级子命令 level:3
+commands:
+  # ==================== 根命令按字母排序 ====================
+  advancement: # level:1, parent: commands
+    description: "管理玩家进度"
+    subcommands:
+      grant: # level:2
+        description: "授予进度"
+      revoke: # level:2
+        description: "撤销进度"
+
+  attribute: # level:1
+    description: "修改实体属性"
+    subcommands:
+      get: # level:2
+        description: "获取属性值"
+      set: # level:2
+        description: "设置属性基础值"
+      modifier: # level:2
+        description: "管理属性修饰符"
+        subcommands:
+          add: # level:3
+            description: "添加修饰符"
+          remove: # level:3
+            description: "移除修饰符"
+          get: # level:3
+            description: "获取修饰符列表"
+
+  bossbar: # level:1
+    description: "管理Boss栏"
+    subcommands:
+      add: # level:2
+        description: "创建新的Boss栏"
+      get: # level:2
+        description: "获取Boss栏信息"
+      list: # level:2
+        description: "列出所有Boss栏"
+      remove: # level:2
+        description: "移除Boss栏"
+      set: # level:2
+        description: "修改Boss栏属性"
+
+  clear: # level:1
+    description: "清除玩家物品（无子命令，仅参数）"
+
+  clone: # level:1
+    description: "复制区域方块（无子命令）"
+
+  damage: # level:1
+    description: "对实体造成伤害（无子命令）"
+
+  datapack: # level:1
+    description: "管理数据包"
+    subcommands:
+      disable: # level:2
+        description: "禁用数据包"
+      enable: # level:2
+        description: "启用数据包"
+      list: # level:2
+        description: "列出已加载数据包"
+
+  data: # level:1
+    description: "操作数据"
+    subcommands:
+      get: # level:2
+        description: "获取数据值"
+      merge: # level:2
+        description: "合并数据"
+      modify: # level:2
+        description: "修改数据"
+      query: # level:2  # 修复：补上缺失的 query 子命令
+        description: "查询方块状态、实体属性或存储信息"
+      remove: # level:2
+        description: "移除数据"
+
+  difficulty: # level:1
+    description: "设置或查询难度（无子命令）"
+
+  effect: # level:1
+    description: "管理状态效果"
+    subcommands:
+      clear: # level:2
+        description: "清除效果"
+      give: # level:2
+        description: "给予效果"
+
+  enchant: # level:1
+    description: "附魔物品（无子命令）"
+
+  execute: # level:1
+    description: "执行命令上下文（仅列一级子命令）"
+    subcommands:
+      as: # level:2
+        description: "以目标实体身份执行"
+      at: # level:2
+        description: "在目标实体位置执行"
+      facing: # level:2
+        description: "朝向方向"
+      if: # level:2
+        description: "条件判断"
+      unless: # level:2
+        description: "条件否定判断"
+      positioned: # level:2
+        description: "指定位置"
+      rotated: # level:2
+        description: "指定旋转"
+      run: # level:2
+        description: "执行实际命令"
+      store: # level:2
+        description: "存储结果"
+
+  experience: # level:1
+    description: "管理经验值"
+    subcommands:
+      add: # level:2
+        description: "添加经验"
+      set: # level:2
+        description: "设置经验"
+      query: # level:2
+        description: "查询经验"
+
+  fill: # level:1
+    description: "填充区域方块（无子命令）"
+
+  forceload: # level:1
+    description: "强制加载区块"
+    subcommands:
+      add: # level:2
+        description: "添加强制加载区块"
+      list: # level:2
+        description: "列出强制加载区块"
+      remove: # level:2
+        description: "移除强制加载区块"
+
+  function: # level:1
+    description: "运行函数（无子命令）"
+
+  gamemode: # level:1
+    description: "更改游戏模式（无子命令）"
+
+  gamerule: # level:1
+    description: "设置或查询游戏规则（无子命令）"
+
+  give: # level:1
+    description: "给予物品（无子命令）"
+
+  help: # level:1
+    description: "显示帮助信息（无子命令）"
+
+  item: # level:1
+    description: "修改物品"
+    subcommands:
+      modify: # level:2
+        description: "修改物品属性"
+      replace: # level:2
+        description: "替换物品"
+
+  jfr: # level:1
+    description: "管理JFR记录"
+    subcommands:
+      start: # level:2
+        description: "开始记录"
+      stop: # level:2
+        description: "停止记录"
+
+  kick: # level:1
+    description: "踢出玩家（无子命令）"
+
+  kill: # level:1
+    description: "杀死实体（无子命令）"
+
+  list: # level:1
+    description: "列出在线玩家（无子命令）"
+
+  op: # level:1
+    description: "授予管理员权限（无子命令）"
+
+  deop: # level:1
+    description: "移除管理员权限（无子命令）"
+
+  locate: # level:1
+    description: "定位结构或生物群系"
+    subcommands:
+      biome: # level:2
+        description: "定位生物群系"
+      structure: # level:2
+        description: "定位结构"
+      poi: # level:2
+        description: "定位兴趣点"
+
+  loot: # level:1
+    description: "生成战利品"
+    subcommands:
+      drop: # level:2
+        description: "将战利品丢到世界"
+      give: # level:2
+        description: "给予玩家战利品"
+      insert: # level:2
+        description: "插入到容器"
+      replace: # level:2
+        description: "替换容器物品"
+
+  me: # level:1
+    description: "发送表情消息（无子命令）"
+
+  msg: # level:1
+    description: "私聊消息（同 /tell，无子命令）"
+
+  particle: # level:1
+    description: "生成粒子（无子命令）"
+
+  place: # level:1
+    description: "放置结构或地物"
+    subcommands:
+      feature: # level:2
+        description: "放置地物"
+      jigsaw: # level:2
+        description: "放置拼图"
+      structure: # level:2
+        description: "放置结构"
+      template: # level:2
+        description: "放置模板"
+
+  playsound: # level:1
+    description: "播放声音（无子命令）"
+
+  random: # level:1
+    description: "生成随机数或管理随机序列"
+    subcommands:
+      value: # level:2
+        description: "生成随机值"
+      reset: # level:2  # 修复：补上 reset 子命令
+        description: "重置随机序列"
+
+  recipe: # level:1
+    description: "管理合成配方"
+    subcommands:
+      give: # level:2
+        description: "给予玩家配方"
+      take: # level:2
+        description: "移除玩家配方"
+
+  reload: # level:1
+    description: "重载数据包和函数（无子命令）"
+
+  return: # level:1
+    description: "从函数返回值"
+    subcommands:
+      run: # level:2
+        description: "执行命令并返回结果"
+
+  say: # level:1
+    description: "发送公开消息（无子命令）"
+
+  schedule: # level:1
+    description: "计划执行函数"
+    subcommands:
+      clear: # level:2
+        description: "清除计划任务"
+      function: # level:2
+        description: "计划函数执行"
+
+  scoreboard: # level:1
+    description: "管理计分板"
+    subcommands:
+      objectives: # level:2
+        description: "管理计分板目标"
+        subcommands:
+          add: # level:3
+            description: "添加目标"
+          list: # level:3
+            description: "列出目标"
+          modify: # level:3
+            description: "修改目标"
+          remove: # level:3
+            description: "移除目标"
+          setdisplay: # level:3
+            description: "设置显示位置"
+      players: # level:2
+        description: "管理玩家分数"
+        subcommands:
+          add: # level:3
+            description: "增加分数"
+          enable: # level:3
+            description: "启用触发器"
+          get: # level:3
+            description: "获取分数"
+          list: # level:3
+            description: "列出玩家"
+          operation: # level:3
+            description: "分数运算"
+          remove: # level:3
+            description: "移除分数"
+          reset: # level:3
+            description: "重置分数"
+          set: # level:3
+            description: "设置分数"
+
+  seed: # level:1
+    description: "显示世界种子（无子命令）"
+
+  setblock: # level:1
+    description: "设置单个方块（无子命令）"
+
+  setworldspawn: # level:1
+    description: "设置世界出生点（无子命令）"
+
+  spawnpoint: # level:1
+    description: "设置玩家出生点（无子命令）"
+
+  spectate: # level:1
+    description: "旁观实体（无子命令）"
+
+  spreadplayers: # level:1
+    description: "分散玩家（无子命令）"
+
+  stop: # level:1
+    description: "停止服务器（无子命令）"
+
+  summon: # level:1
+    description: "召唤实体（无子命令）"
+
+  tag: # level:1
+    description: "管理实体标签"
+    subcommands:
+      add: # level:2
+        description: "添加标签"
+      list: # level:2
+        description: "列出标签"
+      remove: # level:2
+        description: "移除标签"
+
+  team: # level:1
+    description: "管理队伍"
+    subcommands:
+      add: # level:2
+        description: "创建队伍"
+      empty: # level:2
+        description: "清空队伍"
+      join: # level:2
+        description: "加入队伍"
+      leave: # level:2
+        description: "离开队伍"
+      list: # level:2
+        description: "列出队伍"
+      modify: # level:2
+        description: "修改队伍属性"
+      remove: # level:2
+        description: "移除队伍"
+
+  teammsg: # level:1
+    description: "发送队伍消息（无子命令）"
+
+  teleport: # level:1
+    description: "传送实体（无子命令）"
+
+  tell: # level:1
+    description: "私聊消息（无子命令）"
+
+  tellraw: # level:1
+    description: "发送JSON消息（无子命令）"
+
+  time: # level:1
+    description: "修改或查询时间"
+    subcommands:
+      add: # level:2
+        description: "增加时间"
+      query: # level:2
+        description: "查询时间"
+      set: # level:2
+        description: "设置时间"
+
+  title: # level:1
+    description: "显示标题"
+    subcommands:
+      clear: # level:2
+        description: "清除标题"
+      reset: # level:2
+        description: "重置标题设置"
+      times: # level:2
+        description: "设置显示时间"
+      title: # level:2
+        description: "显示主标题"
+      subtitle: # level:2
+        description: "显示副标题"
+      actionbar: # level:2
+        description: "显示动作栏"
+
+  tm: # level:1
+    description: "队伍消息（同 /teammsg，无子命令）"
+
+  tp: # level:1
+    description: "传送（同 /teleport，无子命令）"
+
+  trigger: # level:1
+    description: "触发触发器（无子命令）"
+
+  weather: # level:1
+    description: "设置或查询天气"
+    subcommands:
+      clear: # level:2
+        description: "晴天"
+      rain: # level:2
+        description: "下雨或雷雨（添加时间参数可变为雷雨）"
+      query: # level:2  # 修复：补上 query 子命令，用于查询当前天气
+        description: "查询当前天气"
+      thunder: # level:2  # 修复：保留但标注，实际上在新版本中已被 rain 替代
+        description: "雷雨（已被 /weather rain 替代）"
+
+  worldborder: # level:1
+    description: "管理世界边界"
+    subcommands:
+      add: # level:2
+        description: "增加边界大小"
+      center: # level:2
+        description: "设置中心"
+      damage: # level:2
+        description: "设置边界伤害"
+      get: # level:2
+        description: "获取边界信息"
+      set: # level:2
+        description: "设置边界大小"
+      warning: # level:2
+        description: "设置警告时间"
+
+  xp: # level:1
+    description: "管理经验（同 /experience）"
+    subcommands:
+      add: # level:2
+        description: "添加经验"
+      set: # level:2
+        description: "设置经验"
+      query: # level:2
+        description: "查询经验"
+
+  # ==================== 以下为根据 Java 版命令列表新增的根命令 ====================
+  ban: # level:1
+    description: "将玩家加入封禁列表。"
+  ban-ip: # level:1
+    description: "将IP地址加入封禁列表。"
+  banlist: # level:1
+    description: "显示封禁列表。"
+  debug: # level:1
+    description: "开始或结束刻分析器或对函数进行调试。"
+  defaultgamemode: # level:1
+    description: "更改默认的游戏模式。"
+  dialog: # level:1
+    description: "向玩家展示或清除对话框。"
+  fetchprofile: # level:1
+    description: "获取玩家档案。"
+  fillbiome: # level:1
+    description: "将区域设置为指定生物群系。"
+  pardon: # level:1
+    description: "解封玩家。"
+  pardon-ip: # level:1
+    description: "从封禁列表中解封指定IP。"
+  perf: # level:1
+    description: "记录并保存性能分析数据（10秒内）。"
+  posteffect: # level:1
+    description: "管理玩家使用的后处理效果。"
+  publish: # level:1
+    description: "向局域网开放单人游戏世界。"
+  ride: # level:1
+    description: "控制一个实体的骑乘状态。"
+  rotate: # level:1
+    description: "更改实体的旋转角度。"
+  save-all: # level:1
+    description: "保存服务器世界状态到硬盘。"
+  save-off: # level:1
+    description: "关闭服务器自动保存。"
+  save-on: # level:1
+    description: "开启服务器自动保存。"
+  setidletimeout: # level:1
+    description: "设置无操作玩家被踢出的延时。"
+  stopsound: # level:1
+    description: "停止声音播放。"
+  stopwatch: # level:1
+    description: "管理秒表。"
+  swing: # level:1
+    description: "控制实体的手臂挥动。"
+  test: # level:1
+    description: "管理和运行游戏测试。"
+  tick: # level:1
+    description: "停止或开始游戏刻的流逝，或更改游戏刻速率。"
+  transfer: # level:1
+    description: "将玩家转移到另一个服务器上。"
+  unpublish: # level:1
+    description: "停止将单人游戏世界开放到多人游戏。"
+  version: # level:1
+    description: "输出游戏版本信息。"
+  w: # level:1
+    description: "向另一玩家发送私信。"
+  waypoint: # level:1
+    description: "列出或更改路径点。"
+  whitelist: # level:1
+    description: "管理服务器白名单。"
+
+  # ==================== 调试命令（需启用调试工具） ====================
+  warden_spawn_tracker: # level:1
+    description: "设置幽匿尖啸体生成监守者之前应接收到多少次振动。"
+  debugpath: # level:1
+    description: "计算并测试指定生物是否能够寻路到指定位置。"
+  debugmobspawning: # level:1
+    description: "指定位置上进行一次生物的周期生成。"
+  raid: # level:1
+    description: "管理执行者处的袭击。"
+  serverpack: # level:1
+    description: "配置服务端指定资源包。"
+  spawn_armor_trims: # level:1
+    description: "生成所有不同图案、材料和盔甲类型可能组合出的盔甲纹饰。"
+  debugconfig: # level:1
+    description: "调试网络阶段的配置阶段。"
+  chase: # level:1
+    description: "同步不同游戏实例的玩家的移动。"

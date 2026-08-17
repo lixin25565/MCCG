@@ -1,0 +1,1463 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft 1.21.1 RCON WebUI</title>
+    <style>
+        :root {
+            --bg-primary: #0f0f23;
+            --bg-secondary: #1a1a2e;
+            --bg-card: #16213e;
+            --bg-hover: #1e2a4a;
+            --border-color: #2a3f5f;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0aec0;
+            --accent: #00d4aa;
+            --accent-hover: #00b894;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --success: #2ecc71;
+            --info: #3498db;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* 侧边栏 */
+        #sidebar {
+            width: 320px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.1rem;
+            color: var(--accent);
+            margin-bottom: 4px;
+        }
+
+        .sidebar-header p {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* 连接面板 */
+        .conn-panel {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            font-size: 0.85rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--danger);
+            box-shadow: 0 0 8px var(--danger);
+            transition: all 0.3s;
+        }
+
+        .status-dot.connected {
+            background: var(--success);
+            box-shadow: 0 0 8px var(--success);
+        }
+
+        .conn-panel input {
+            width: 100%;
+            margin: 4px 0;
+            padding: 8px 12px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            transition: border-color 0.2s;
+        }
+
+        .conn-panel input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-hover);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        /* 搜索框 */
+        .search-box {
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 8px 12px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        /* 命令树 */
+        .tree-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px 0;
+        }
+
+        .tree-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .tree-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .tree-container::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+
+        .cmd-tree {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .cmd-tree ul {
+            list-style: none;
+            padding-left: 20px;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .cmd-tree ul.collapsed {
+            max-height: 0;
+        }
+
+        .cmd-node {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.15s;
+            border-left: 2px solid transparent;
+        }
+
+        .cmd-node:hover {
+            background: var(--bg-hover);
+            border-left-color: var(--accent);
+        }
+
+        .cmd-node.active {
+            background: var(--bg-hover);
+            border-left-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .cmd-node .toggle {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            width: 12px;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+
+        .cmd-node .toggle.expanded {
+            transform: rotate(90deg);
+        }
+
+        .cmd-node .name {
+            font-weight: 500;
+        }
+
+        .cmd-node .desc {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-left: auto;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 140px;
+        }
+
+        /* 主区域 */
+        #main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .main-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .main-header h1 {
+            font-size: 1.2rem;
+            color: var(--accent);
+        }
+
+        /* 命令预览 */
+        .preview-section {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .preview-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        #command-preview {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.95rem;
+            color: var(--accent);
+            word-break: break-all;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+        }
+
+        /* 构建区域 */
+        .builder-section {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 24px;
+        }
+
+        .builder-section::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .builder-section::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        .builder-section::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        .nbt-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin: 12px 0;
+            padding: 16px;
+        }
+
+        .nbt-section h4 {
+            color: var(--accent);
+            margin-bottom: 12px;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nbt-section h4::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 16px;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 8px 0;
+            align-items: center;
+        }
+
+        .form-row label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            min-width: 120px;
+        }
+
+        .form-row input,
+        .form-row select,
+        .form-row textarea {
+            flex: 1;
+            min-width: 200px;
+            padding: 8px 12px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-row input:focus,
+        .form-row select:focus,
+        .form-row textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .form-row input[type="checkbox"] {
+            min-width: auto;
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent);
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin: 8px 0;
+        }
+
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        .nbt-row {
+            display: flex;
+            gap: 8px;
+            margin: 6px 0;
+            align-items: center;
+            background: var(--bg-primary);
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .nbt-row input,
+        .nbt-row select {
+            flex: 1;
+            padding: 6px 10px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-primary);
+            font-size: 0.85rem;
+        }
+
+        .nbt-row button {
+            padding: 6px 12px;
+            background: var(--danger);
+            color: white;
+            font-size: 0.8rem;
+        }
+
+        .nbt-row button:hover {
+            background: #c0392b;
+        }
+
+        /* 操作按钮 */
+        .action-bar {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 12px;
+        }
+
+        .action-bar button {
+            padding: 10px 24px;
+            font-size: 0.9rem;
+        }
+
+        /* 日志 */
+        .log-section {
+            height: 200px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .log-header {
+            padding: 8px 24px;
+            background: var(--bg-secondary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        #log {
+            flex: 1;
+            background: #050510;
+            color: var(--text-primary);
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.85rem;
+            padding: 12px 24px;
+            overflow-y: auto;
+            line-height: 1.6;
+        }
+
+        #log::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #log::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        .log-entry {
+            margin: 2px 0;
+            padding: 2px 0;
+        }
+
+        .log-time {
+            color: var(--text-secondary);
+            margin-right: 8px;
+        }
+
+        .log-send {
+            color: var(--info);
+        }
+
+        .log-recv {
+            color: var(--success);
+        }
+
+        .log-error {
+            color: var(--danger);
+        }
+
+        .log-info {
+            color: var(--warning);
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            #sidebar {
+                width: 100%;
+                height: 40vh;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+        }
+
+        /* 动画 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .nbt-section {
+            animation: fadeIn 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar">
+        <div class="sidebar-header">
+            <h2>🔌 RCON 连接</h2>
+            <p>Minecraft 1.21.1 远程控制台</p>
+        </div>
+        <div class="conn-panel">
+            <div class="status-indicator">
+                <span class="status-dot" id="status-dot"></span>
+                <span id="status-text">未连接</span>
+            </div>
+            <input type="text" id="host" value="127.0.0.1" placeholder="主机地址">
+            <input type="number" id="port" value="25575" placeholder="RCON端口">
+            <input type="password" id="password" placeholder="RCON密码">
+            <div class="btn-group">
+                <button class="btn-primary" onclick="connectRCON()">连接</button>
+                <button class="btn-secondary" onclick="disconnectRCON()">断开</button>
+            </div>
+        </div>
+        <div class="search-box">
+            <input type="text" id="cmd-search" placeholder="🔍 搜索命令..." oninput="filterCommands()">
+        </div>
+        <div class="tree-container">
+            <div id="command-tree"></div>
+        </div>
+    </div>
+    <div id="main">
+        <div class="main-header">
+            <h1>🎮 命令构建器</h1>
+        </div>
+        <div class="preview-section">
+            <div class="preview-label">命令预览</div>
+            <div id="command-preview">give player_name minecraft:diamond_sword 1</div>
+        </div>
+        <div class="builder-section" id="builder-area">
+            <!-- 动态生成 -->
+        </div>
+        <div class="action-bar">
+            <button class="btn-primary" onclick="sendCommand()">📤 发送命令</button>
+            <button class="btn-secondary" onclick="copyCommand()">📋 复制命令</button>
+            <button class="btn-secondary" onclick="refreshCatalogs()">🔄 刷新目录</button>
+            <label style="display:flex;align-items:center;gap:6px;color:var(--text-secondary);font-size:0.8rem;"><input type="checkbox" id="copy-leading-slash"> /</label>
+            <label style="display:flex;align-items:center;gap:6px;color:var(--text-secondary);font-size:0.8rem;"><input type="checkbox" id="copy-at-selector"> @</label>
+        </div>
+        <div class="log-section">
+            <div class="log-header">
+                <span>📜 终端日志</span>
+                <button class="btn-secondary" style="padding:4px 10px;font-size:0.75rem;" onclick="clearLog()">清空</button>
+            </div>
+            <div id="log"></div>
+        </div>
+    </div>
+
+    <script>
+        let commandTree = [];
+        let selectedPath = [];
+        let currentCommandString = '';
+        let isConnected = false;
+
+        const COMMON_COMMAND_PRIORITY = ['effect', 'give', 'gamemode', 'op', 'deop', 'stop', 'time', 'weather', 'teleport', 'summon', 'title', 'say', 'msg', 'tellraw'];
+        const HIDDEN_COMMANDS = new Set(['execute', 'scoreboard', 'bossbar', 'attribute', 'loot', 'tellraw']);
+        let ITEM_OPTIONS = [
+            ['minecraft:diamond_sword', '钻石剑'], ['minecraft:diamond_pickaxe', '钻石镐'], ['minecraft:diamond_axe', '钻石斧'],
+            ['minecraft:diamond_shovel', '钻石铲'], ['minecraft:diamond_hoe', '钻石锄'], ['minecraft:diamond_helmet', '钻石头盔'],
+            ['minecraft:diamond_chestplate', '钻石胸甲'], ['minecraft:diamond_leggings', '钻石护腿'], ['minecraft:diamond_boots', '钻石靴子'],
+            ['minecraft:bow', '弓'], ['minecraft:crossbow', '十字弓'], ['minecraft:trident', '三叉戟'], ['minecraft:shield', '盾牌'],
+            ['minecraft:elytra', '鞘翅'], ['minecraft:golden_apple', '金苹果'], ['minecraft:enchanted_golden_apple', '附魔金苹果'],
+            ['minecraft:stick', '木棍'], ['minecraft:stone', '石头'], ['minecraft:glass', '玻璃']
+        ];
+        let ENCHANT_OPTIONS = [
+            ['minecraft:sharpness', '锋利'], ['minecraft:smite', '亡灵杀手'], ['minecraft:bane_of_arthropods', '节肢杀手'],
+            ['minecraft:efficiency', '效率'], ['minecraft:unbreaking', '耐久'], ['minecraft:looting', '掠夺'],
+            ['minecraft:protection', '保护'], ['minecraft:fire_protection', '火焰保护'], ['minecraft:blast_protection', '爆炸保护'],
+            ['minecraft:projectile_protection', '弹射物保护'], ['minecraft:respiration', '水下呼吸'], ['minecraft:aqua_affinity', '水下速掘'],
+            ['minecraft:thorns', '荆棘'], ['minecraft:power', '力量'], ['minecraft:punch', '冲击'], ['minecraft:flame', '火矢']
+        ];
+        let POTION_EFFECT_OPTIONS = [
+            ['minecraft:speed', '速度'], ['minecraft:slowness', '缓慢'], ['minecraft:haste', '急迫'], ['minecraft:mining_fatigue', '挖掘疲劳'],
+            ['minecraft:strength', '力量'], ['minecraft:instant_health', '瞬间治疗'], ['minecraft:instant_damage', '瞬间伤害'], ['minecraft:jump_boost', '跳跃提升'],
+            ['minecraft:nausea', '反胃'], ['minecraft:regeneration', '再生'], ['minecraft:resistance', '抗性提升'], ['minecraft:fire_resistance', '抗火'],
+            ['minecraft:water_breathing', '水下呼吸'], ['minecraft:invisibility', '隐身'], ['minecraft:blindness', '失明'], ['minecraft:night_vision', '夜视'],
+            ['minecraft:hunger', '饥饿'], ['minecraft:weakness', '虚弱'], ['minecraft:poison', '中毒'], ['minecraft:wither', '凋零'], ['minecraft:health_boost', '生命提升']
+        ];
+
+        function sortCommandTree(nodes) {
+            if (!Array.isArray(nodes)) return [];
+            const priority = new Map(COMMON_COMMAND_PRIORITY.map((name, idx) => [name, idx]));
+            return [...nodes].sort((a, b) => {
+                const aRank = priority.get(a.name) ?? Number.MAX_SAFE_INTEGER;
+                const bRank = priority.get(b.name) ?? Number.MAX_SAFE_INTEGER;
+                if (aRank !== bRank) return aRank - bRank;
+                return String(a.name).localeCompare(String(b.name), 'zh-CN');
+            });
+        }
+
+        function renderSelectOptions(options, value, className, extra = '') {
+            const selected = value || options[0][0];
+            const html = options.map(([optionValue, label]) => `<option value="${optionValue}" ${optionValue === selected ? 'selected' : ''}>${label}</option>`).join('');
+            return `<select class="${className}" ${extra}>${html}</select>`;
+        }
+
+        function filterCatalogSelect(searchInput) {
+            const select = searchInput.parentElement.querySelector('select');
+            if (!select) return;
+            const query = (searchInput.value || '').trim().toLowerCase();
+            Array.from(select.options).forEach((option) => {
+                const text = `${option.value} ${option.textContent}`.toLowerCase();
+                const show = !query || text.includes(query);
+                option.hidden = !show;
+                option.disabled = !show;
+            });
+            if (query && !Array.from(select.options).some((option) => !option.hidden)) {
+                select.selectedIndex = -1;
+            } else if (select.selectedIndex < 0) {
+                const firstVisible = Array.from(select.options).find((option) => !option.hidden);
+                if (firstVisible) select.value = firstVisible.value;
+            }
+        }
+
+        const COMMAND_SPECS = {
+            give: {
+                label: '给予物品',
+                fields: [
+                    { name: 'target', type: 'selector', label: '目标', default: 'player_name', required: true },
+                    { name: 'item', type: 'item', label: '物品ID', default: 'minecraft:diamond_sword', required: true },
+                    { name: 'count', type: 'int', label: '数量', default: '1', min: 1, max: 64 }
+                ],
+                build: (values) => buildGiveCommand(values)
+            },
+            experience: {
+                label: '经验',
+                subcommands: {
+                    add: {
+                        label: '增加经验',
+                        fields: [
+                            { name: 'target', type: 'selector', label: '对象', default: 'player_name', required: true },
+                            { name: 'amount', type: 'int', label: '数量', default: '10', required: true }
+                        ],
+                        build: (values) => buildCommandFromFields('experience add', values)
+                    },
+                    set: {
+                        label: '设置经验',
+                        fields: [
+                            { name: 'target', type: 'selector', label: '对象', default: 'player_name', required: true },
+                            { name: 'amount', type: 'int', label: '经验值', default: '100', required: true }
+                        ],
+                        build: (values) => buildCommandFromFields('experience set', values)
+                    },
+                    query: {
+                        label: '查询经验',
+                        fields: [
+                            { name: 'target', type: 'selector', label: '对象', default: 'player_name', required: true },
+                            { name: 'type', type: 'enum', label: '类型', default: 'points', options: ['points', 'levels'], required: true }
+                        ],
+                        build: (values) => buildCommandFromFields('experience query', values)
+                    }
+                }
+            },
+            effect: {
+                label: '状态效果',
+                subcommands: {
+                    give: {
+                        label: '给予效果',
+                        fields: [
+                            { name: 'target', type: 'selector', label: '对象', default: 'player_name', required: true },
+                            { name: 'effect', type: 'effect', label: '效果', default: 'minecraft:speed', required: true },
+                            { name: 'seconds', type: 'int', label: '秒数', default: '30', min: 1, max: 100000 },
+                            { name: 'amplifier', type: 'int', label: '等级', default: '0', min: 0, max: 255 },
+                            { name: 'hideParticles', type: 'enum', label: '粒子', default: 'true', options: ['true', 'false'] }
+                        ],
+                        build: (values) => buildCommandFromFields('effect give', values)
+                    },
+                    clear: {
+                        label: '清除效果',
+                        fields: [
+                            { name: 'target', type: 'selector', label: '对象', default: 'player_name', required: true },
+                            { name: 'effect', type: 'effect', label: '效果', default: 'minecraft:speed' }
+                        ],
+                        build: (values) => buildCommandFromFields('effect clear', values)
+                    }
+                }
+            },
+            summon: {
+                label: '召唤实体',
+                fields: [
+                    { name: 'entity', type: 'entity', label: '实体', default: 'minecraft:zombie', required: true },
+                    { name: 'pos', type: 'pos', label: '位置', default: '~ ~1 ~', required: true },
+                    { name: 'nbt', type: 'custom', label: 'NBT', default: '' }
+                ],
+                build: (values) => buildCommandFromFields('summon', values)
+            },
+            teleport: {
+                label: '传送',
+                fields: [
+                    { name: 'targets', type: 'selector', label: '目标', default: 'player_name', required: true },
+                    { name: 'destination', type: 'pos', label: '目的地', default: '~ ~1 ~', required: true }
+                ],
+                build: (values) => buildCommandFromFields('teleport', values)
+            },
+            time: {
+                label: '时间',
+                subcommands: {
+                    set: {
+                        label: '设置时间',
+                        fields: [
+                            { name: 'time', type: 'enum', label: '时间', default: 'day', options: ['day', 'night', 'midnight', 'noon', 'sunset', 'sunrise'], required: true }
+                        ],
+                        build: (values) => buildCommandFromFields('time set', values)
+                    },
+                    add: {
+                        label: '增加时间',
+                        fields: [
+                            { name: 'amount', type: 'int', label: '增量', default: '100', required: true }
+                        ],
+                        build: (values) => buildCommandFromFields('time add', values)
+                    },
+                    query: {
+                        label: '查询时间',
+                        fields: [
+                            { name: 'type', type: 'enum', label: '类型', default: 'daytime', options: ['daytime', 'gametime', 'day'], required: true }
+                        ],
+                        build: (values) => buildCommandFromFields('time query', values)
+                    }
+                }
+            },
+            weather: {
+                label: '天气',
+                subcommands: {
+                    clear: { label: '晴天', fields: [{ name: 'duration', type: 'int', label: '时长', default: '6000' }], build: (values) => buildCommandFromFields('weather clear', values) },
+                    rain: { label: '下雨', fields: [{ name: 'duration', type: 'int', label: '时长', default: '6000' }], build: (values) => buildCommandFromFields('weather rain', values) },
+                    thunder: { label: '雷雨', fields: [{ name: 'duration', type: 'int', label: '时长', default: '6000' }], build: (values) => buildCommandFromFields('weather thunder', values) }
+                }
+            },
+            title: {
+                label: '标题',
+                subcommands: {
+                    clear: { label: '清除标题', build: () => 'title clear' },
+                    reset: { label: '重置标题', build: () => 'title reset' },
+                    title: { label: '主标题', fields: [{ name: 'player', type: 'selector', label: '玩家', default: 'player_name' }, { name: 'json', type: 'json', label: '标题内容', default: '{"text":"欢迎"}' }], build: (values) => buildCommandFromFields('title title', values) },
+                    subtitle: { label: '副标题', fields: [{ name: 'player', type: 'selector', label: '玩家', default: 'player_name' }, { name: 'json', type: 'json', label: '副标题', default: '{"text":"欢迎"}' }], build: (values) => buildCommandFromFields('title subtitle', values) },
+                    actionbar: { label: '动作栏', fields: [{ name: 'player', type: 'selector', label: '玩家', default: 'player_name' }, { name: 'json', type: 'json', label: '文本', default: '{"text":"欢迎"}' }], build: (values) => buildCommandFromFields('title actionbar', values) },
+                    times: { label: '动画时间', fields: [{ name: 'fadeIn', type: 'int', label: '淡入', default: '20' }, { name: 'stay', type: 'int', label: '停留', default: '60' }, { name: 'fadeOut', type: 'int', label: '淡出', default: '20' }], build: (values) => buildCommandFromFields('title times', values) }
+                }
+            },
+            execute: {
+                label: '执行上下文',
+                subcommands: {
+                    as: { label: '以目标实体身份执行', fields: [{ name: 'target', type: 'selector', label: '目标', default: 'player_name', required: true }, { name: 'at', type: 'selector', label: '附加位置', default: 'player_name' }], build: (values) => buildCommandFromFields('execute as', values) },
+                    at: { label: '在目标实体位置执行', fields: [{ name: 'target', type: 'selector', label: '目标', default: 'player_name', required: true }, { name: 'run', type: 'text', label: '命令', default: 'say hello' }], build: (values) => buildCommandFromFields('execute at', values) },
+                    run: { label: '运行命令', fields: [{ name: 'command', type: 'text', label: '命令', default: 'say hello', required: true }], build: (values) => buildCommandFromFields('execute run', values) },
+                    if: { label: '条件判断', fields: [{ name: 'condition', type: 'text', label: '条件', default: 'entity player_name', required: true }], build: (values) => buildCommandFromFields('execute if', values) },
+                    unless: { label: '条件否定判断', fields: [{ name: 'condition', type: 'text', label: '条件', default: 'entity player_name', required: true }], build: (values) => buildCommandFromFields('execute unless', values) },
+                    positioned: { label: '指定位置', fields: [{ name: 'pos', type: 'pos', label: '坐标', default: '~ ~1 ~', required: true }], build: (values) => buildCommandFromFields('execute positioned', values) },
+                    rotated: { label: '指定旋转', fields: [{ name: 'rot', type: 'text', label: '旋转', default: '~ 90', required: true }], build: (values) => buildCommandFromFields('execute rotated', values) }
+                }
+            },
+            scoreboard: {
+                label: '计分板',
+                subcommands: {
+                    objectives: {
+                        label: '目标管理',
+                        subcommands: {
+                            add: { label: '新增目标', fields: [{ name: 'objective', type: 'text', label: '目标名', default: 'deaths', required: true }, { name: 'criterion', type: 'text', label: '判定器', default: 'deathCount', required: true }], build: (values) => buildCommandFromFields('scoreboard objectives add', values) },
+                            list: { label: '列出目标', build: () => 'scoreboard objectives list' },
+                            remove: { label: '删除目标', fields: [{ name: 'objective', type: 'text', label: '目标名', default: 'deaths', required: true }], build: (values) => buildCommandFromFields('scoreboard objectives remove', values) }
+                        }
+                    },
+                    players: {
+                        label: '玩家分数',
+                        subcommands: {
+                            add: { label: '增加分数', fields: [{ name: 'target', type: 'selector', label: '玩家', default: 'player_name', required: true }, { name: 'objective', type: 'text', label: '目标', default: 'deaths', required: true }, { name: 'score', type: 'int', label: '分数', default: '1', required: true }], build: (values) => buildCommandFromFields('scoreboard players add', values) },
+                            set: { label: '设置分数', fields: [{ name: 'target', type: 'selector', label: '玩家', default: 'player_name', required: true }, { name: 'objective', type: 'text', label: '目标', default: 'deaths', required: true }, { name: 'score', type: 'int', label: '分数', default: '1', required: true }], build: (values) => buildCommandFromFields('scoreboard players set', values) },
+                            get: { label: '查询分数', fields: [{ name: 'target', type: 'selector', label: '玩家', default: 'player_name', required: true }, { name: 'objective', type: 'text', label: '目标', default: 'deaths', required: true }], build: (values) => buildCommandFromFields('scoreboard players get', values) }
+                        }
+                    }
+                }
+            },
+            bossbar: {
+                label: 'Boss栏',
+                subcommands: {
+                    add: { label: '新建Boss栏', fields: [{ name: 'id', type: 'text', label: 'Boss栏ID', default: 'boss1', required: true }, { name: 'name', type: 'json', label: '名称', default: '{"text":"Boss"}' }], build: (values) => buildCommandFromFields('bossbar add', values) },
+                    set: { label: '设置Boss栏属性', fields: [{ name: 'id', type: 'text', label: 'Boss栏ID', default: 'boss1', required: true }, { name: 'value', type: 'text', label: '属性', default: 'name', required: true }, { name: 'arg', type: 'text', label: '参数', default: '{"text":"Boss"}', required: true }], build: (values) => buildCommandFromFields('bossbar set', values) },
+                    remove: { label: '移除Boss栏', fields: [{ name: 'id', type: 'text', label: 'Boss栏ID', default: 'boss1', required: true }], build: (values) => buildCommandFromFields('bossbar remove', values) }
+                }
+            },
+            attribute: {
+                label: '属性',
+                subcommands: {
+                    get: { label: '查询属性', fields: [{ name: 'target', type: 'selector', label: '目标', default: 'player_name', required: true }, { name: 'attribute', type: 'text', label: '属性', default: 'minecraft:generic.attack_damage', required: true }], build: (values) => buildCommandFromFields('attribute get', values) },
+                    set: { label: '设置属性', fields: [{ name: 'target', type: 'selector', label: '目标', default: 'player_name', required: true }, { name: 'attribute', type: 'text', label: '属性', default: 'minecraft:generic.attack_damage', required: true }, { name: 'value', type: 'number', label: '值', default: '1.0', required: true }], build: (values) => buildCommandFromFields('attribute set', values) }
+                }
+            },
+            loot: {
+                label: '战利品',
+                subcommands: {
+                    give: { label: '给予战利品', fields: [{ name: 'targets', type: 'selector', label: '目标', default: 'player_name', required: true }, { name: 'loot_table', type: 'text', label: '战利品表', default: 'minecraft:chests/simple_dungeon', required: true }], build: (values) => buildCommandFromFields('loot give', values) },
+                    spawn: { label: '生成战利品', fields: [{ name: 'pos', type: 'pos', label: '坐标', default: '~ ~1 ~', required: true }, { name: 'loot_table', type: 'text', label: '战利品表', default: 'minecraft:chests/simple_dungeon', required: true }], build: (values) => buildCommandFromFields('loot spawn', values) }
+                }
+            },
+            say: { label: '广播消息', fields: [{ name: 'message', type: 'text', label: '消息', default: 'hello', required: true }], build: (values) => buildCommandFromFields('say', values) },
+            msg: { label: '私聊', fields: [{ name: 'target', type: 'selector', label: '目标', default: 'player_name', required: true }, { name: 'message', type: 'text', label: '消息', default: 'hello', required: true }], build: (values) => buildCommandFromFields('tell', values) },
+            tellraw: { label: 'JSON消息', fields: [{ name: 'target', type: 'selector', label: '目标', default: 'player_name' }, { name: 'json', type: 'json', label: 'JSON', default: '{"text":"hello"}', required: true }], build: (values) => buildCommandFromFields('tellraw', values) }
+        };
+
+        function resolveCommandSpec(path) {
+            if (!path || path.length === 0) {
+                return { label: '通用命令', fields: [{ name: 'args', type: 'text', label: '参数', default: '' }], build: (values) => values.args ? `${values.args}` : '' };
+            }
+
+            const root = COMMAND_SPECS[path[0]];
+            if (!root) {
+                return {
+                    label: path[path.length - 1],
+                    fields: [{ name: 'args', type: 'text', label: '参数', default: '' }],
+                    build: (values) => values.args ? `${path.join(' ')} ${values.args}` : `${path.join(' ')}`
+                };
+            }
+
+            if (path.length === 1) return root;
+            if (root.subcommands && root.subcommands[path[1]]) {
+                const second = root.subcommands[path[1]];
+                if (path.length === 2) return second;
+                if (second.subcommands && second.subcommands[path[2]]) {
+                    return second.subcommands[path[2]];
+                }
+            }
+
+            return root;
+        }
+
+        function buildCommandFromFields(basePath, values) {
+            const parts = [basePath.trim()];
+            Object.keys(values || {}).forEach((key) => {
+                const value = values[key];
+                if (value === undefined || value === null || value === '') return;
+                if (key === 'json' && typeof value === 'string') {
+                    parts.push(value.trim());
+                    return;
+                }
+                parts.push(String(value).trim());
+            });
+            return parts.join(' ');
+        }
+
+        function buildGiveCommand(values) {
+            const target = values.target || 'player_name';
+            const item = values.item || 'minecraft:diamond_sword';
+            const count = values.count || 1;
+            const itemComponents = buildGiveComponents();
+            return itemComponents ? `give ${target} ${item}[${itemComponents}] ${count}` : `give ${target} ${item} ${count}`;
+        }
+
+        function buildGiveComponents() {
+            const components = [];
+            const enchRows = document.querySelectorAll('#enchant-list .nbt-row');
+            if (enchRows.length > 0) {
+                const levels = {};
+                enchRows.forEach((row) => {
+                    const id = row.querySelector('.ench-id')?.value.trim();
+                    const lvl = Number(row.querySelector('.ench-lvl')?.value || 1);
+                    if (id) levels[id] = lvl;
+                });
+                if (Object.keys(levels).length) {
+                    const levelsText = Object.entries(levels)
+                        .map(([key, value]) => `"${escapeNbtString(key)}":${Number(value)}`)
+                        .join(',');
+                    components.push(`minecraft:enchantments={levels:{${levelsText}}}`);
+                }
+            }
+
+            const attrRows = document.querySelectorAll('#attr-list .nbt-row');
+            if (attrRows.length > 0) {
+                const attributes = [];
+                attrRows.forEach((row) => {
+                    const name = row.querySelector('.attr-name')?.value.trim();
+                    const amount = row.querySelector('.attr-amount')?.value;
+                    const op = row.querySelector('.attr-op')?.value;
+                    const uuid = row.querySelector('.attr-uuid')?.value.trim();
+                    if (!name || !uuid) return;
+                    const uuidInts = uuid.split(',').map(v => Number(v.trim())).filter(v => !Number.isNaN(v));
+                    if (uuidInts.length !== 4) return;
+                    attributes.push(`{attribute:"${escapeNbtString(name)}",amount:${amount},operation:${op},uuid:[I;${uuidInts.join(',')}]}`);
+                });
+                if (attributes.length) components.push(`minecraft:attribute_modifiers={modifiers:[${attributes.join(',')}]}`);
+            }
+
+            const potionRows = document.querySelectorAll('#potion-list .nbt-row');
+            if (potionRows.length > 0) {
+                const effects = [];
+                potionRows.forEach((row) => {
+                    const id = row.querySelector('.potion-id')?.value;
+                    const amp = row.querySelector('.potion-amp')?.value;
+                    const dur = row.querySelector('.potion-dur')?.value;
+                    if (id !== undefined && id !== '') effects.push(`{id:"${escapeNbtString(id)}",amplifier:${amp},duration:${dur}}`);
+                });
+                if (effects.length) components.push(`minecraft:potion_contents={custom_effects:[${effects.join(',')}]}`);
+            }
+
+            if (document.getElementById('give-unbreakable')?.checked) {
+                components.push('minecraft:unbreakable={}');
+            }
+
+            const customName = document.getElementById('give-custom-name')?.value.trim();
+            if (customName) {
+                components.push(`minecraft:custom_name='{"text":"${escapeNbtString(customName)}"}'`);
+            }
+
+            const loreLines = (document.getElementById('give-lore')?.value || '').split('\n').filter(line => line.trim());
+            if (loreLines.length) {
+                const loreJson = loreLines.map(line => `"${escapeNbtString(line)}"`).join(',');
+                components.push(`minecraft:lore=[${loreJson}]`);
+            }
+
+            const extraNbt = document.getElementById('give-extra-nbt')?.value.trim();
+            if (extraNbt) {
+                components.push(extraNbt.replace(/^\{|\}$/g, '').trim());
+            }
+
+            return components.join(',');
+        }
+
+        function escapeNbtString(value) {
+            return String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+        }
+
+        function readFormValues(spec) {
+            const values = {};
+            if (!spec || !spec.fields) return values;
+            spec.fields.forEach((field) => {
+                const el = document.querySelector(`[data-field="${field.name}"]`);
+                if (!el) return;
+                values[field.name] = el.value;
+            });
+            return values;
+        }
+
+        function hasAtSelector(value) {
+            return typeof value === 'string' && /(?:^|\s)@(?:a|e|p|r|s)\b/.test(value.trim());
+        }
+
+        function validateCommand(path, values) {
+            const issues = [];
+            const last = path[path.length - 1] || '';
+            const isNameLike = (value) => typeof value === 'string' && !hasAtSelector(value) && value.trim().length > 0;
+
+            if (last === 'give') {
+                if (!values.target || !isNameLike(values.target)) issues.push('RCON 不接受 @ 选择器，请填写具体玩家名');
+                if (!values.item || !/^([a-z0-9_\-.]+:)?[a-z0-9_\-.]+$/.test(values.item.trim())) issues.push('物品 ID 格式不正确');
+            }
+
+            if (last === 'teleport' && (!values.targets || !isNameLike(values.targets))) {
+                issues.push('RCON 不接受 @ 选择器，请填写具体目标名');
+            }
+
+            if (last === 'time' && !values.time) {
+                issues.push('时间值不能为空');
+            }
+
+            if (last === 'summon' && (!values.entity || !/^([a-z0-9_\-.]+:)?[a-z0-9_\-.]+$/.test(values.entity.trim()))) {
+                issues.push('实体 ID 格式不正确');
+            }
+
+            return issues;
+        }
+
+        function renderField(field) {
+            const common = `data-field="${field.name}" ${field.required ? 'required' : ''}`;
+
+            switch (field.type) {
+                case 'selector':
+                    return `<div class="form-row"><label>${field.label}</label><input type="text" ${common} value="${field.default || 'player_name'}" oninput="updatePreview()" placeholder="请输入玩家名"></div>`;
+                case 'item':
+                    return `
+                        <div class="form-row">
+                            <label>${field.label}</label>
+                            <div style="display:flex;flex:1;flex-direction:column;gap:6px;min-width:200px;">
+                                <input type="text" class="catalog-search" placeholder="搜索物品..." oninput="filterCatalogSelect(this)" style="min-width:0;" />
+                                ${renderSelectOptions(ITEM_OPTIONS, field.default || 'minecraft:diamond_sword', 'item-select catalog-select', `data-field="${field.name}" id="give-item" onchange="updatePreview()"`)}
+                            </div>
+                        </div>
+                    `;
+                case 'effect':
+                    return `<div class="form-row"><label>${field.label}</label>${renderSelectOptions(POTION_EFFECT_OPTIONS, field.default || 'minecraft:speed', 'effect-select', `data-field="${field.name}" onchange="updatePreview()"`)}</div>`;
+                case 'int':
+                    return `<div class="form-row"><label>${field.label}</label><input type="number" ${common} value="${field.default || 0}" min="${field.min || 0}" max="${field.max || 999999}" oninput="updatePreview()"></div>`;
+                case 'number':
+                    return `<div class="form-row"><label>${field.label}</label><input type="number" step="0.1" ${common} value="${field.default || 0}" oninput="updatePreview()"></div>`;
+                case 'pos':
+                    return `<div class="form-row"><label>${field.label}</label><input type="text" ${common} value="${field.default || '~ ~1 ~'}" oninput="updatePreview()"></div>`;
+                case 'json':
+                    return `<div class="form-row"><label>${field.label}</label><textarea ${common} rows="2" oninput="updatePreview()">${field.default || '{"text":""}'}</textarea></div>`;
+                case 'text':
+                    return `<div class="form-row"><label>${field.label}</label><input type="text" ${common} value="${field.default || ''}" oninput="updatePreview()"></div>`;
+                case 'enum': {
+                    const opts = (field.options || []).map((opt) => `<option value="${opt}" ${opt === field.default ? 'selected' : ''}>${opt}</option>`).join('');
+                    return `<div class="form-row"><label>${field.label}</label><select ${common} onchange="updatePreview()">${opts}</select></div>`;
+                }
+                case 'custom':
+                    return `<div class="form-row"><label>${field.label}</label><input type="text" ${common} value="${field.default || ''}" oninput="updatePreview()"></div>`;
+                default:
+                    return `<div class="form-row"><label>${field.label}</label><input type="text" ${common} value="${field.default || ''}" oninput="updatePreview()"></div>`;
+            }
+        }
+
+        function renderSchemaFields(spec, path) {
+            if (!spec || (!spec.fields && !spec.subcommands)) {
+                return `
+                    <div class="nbt-section">
+                        <h4>${path[path.length - 1] || '通用命令'}</h4>
+                        <div class="form-row"><label>命令前缀</label><input type="text" value="${path.join(' ')}" readonly style="opacity:0.7;"></div>
+                        <div class="form-row"><label>参数</label><input type="text" id="generic-args" oninput="updatePreview()" placeholder="用空格分隔的参数..."></div>
+                        <div class="form-row"><label>自定义输入</label><input type="text" id="custom-command-tail" oninput="updatePreview()" placeholder="可追加自定义参数"></div>
+                    </div>
+                `;
+            }
+
+            const fieldsHtml = spec.fields ? spec.fields.map((field) => renderField(field)).join('') : '';
+            return `
+                <div class="nbt-section">
+                    <h4>${spec.label || path[path.length - 1] || '命令'}</h4>
+                    <div class="form-row"><label>命令前缀</label><input type="text" value="${path.join(' ')}" readonly style="opacity:0.7;"></div>
+                    ${fieldsHtml}
+                    <div class="form-row"><label>自定义输入</label><input type="text" id="custom-command-tail" oninput="updatePreview()" placeholder="额外参数 / 备注 / 兜底输入"></div>
+                    <div id="command-validation" style="display:none; margin-top:12px; font-size:0.8rem; color:#f39c12;"></div>
+                </div>
+            `;
+        }
+
+        function buildGiveForm() {
+            return `
+                <div class="nbt-section">
+                    <h4>基本信息</h4>
+                    <div class="form-row"><label>目标</label><input type="text" id="give-target" value="player_name" oninput="updatePreview()" placeholder="请输入玩家名"></div>
+                    <div class="form-row">
+                        <label>物品ID</label>
+                        <div style="display:flex;flex:1;flex-direction:column;gap:6px;min-width:200px;">
+                            <input type="text" class="catalog-search" placeholder="搜索物品..." oninput="filterCatalogSelect(this)" style="min-width:0;" />
+                            ${renderSelectOptions(ITEM_OPTIONS, 'minecraft:diamond_sword', 'give-item catalog-select', 'id="give-item" onchange="updatePreview()"')}
+                        </div>
+                    </div>
+                    <div class="form-row"><label>数量</label><input type="number" id="give-count" value="1" min="1" max="99" oninput="updatePreview()"></div>
+                    <div class="checkbox-group"><label><input type="checkbox" id="give-unbreakable" onchange="updatePreview()"> 不可破坏</label></div>
+                </div>
+
+                <div class="nbt-section">
+                    <h4>附魔</h4>
+                    <div id="enchant-list"></div>
+                    <div class="btn-group"><button class="btn-secondary" onclick="addEnchantRow()">+ 添加附魔</button><button class="btn-secondary" onclick="removeLastRow('enchant-list')">- 删除最后一行</button></div>
+                </div>
+
+                <div class="nbt-section">
+                    <h4>属性修饰符</h4>
+                    <div id="attr-list"></div>
+                    <div class="btn-group"><button class="btn-secondary" onclick="addAttrRow()">+ 添加属性</button><button class="btn-secondary" onclick="removeLastRow('attr-list')">- 删除最后一行</button></div>
+                </div>
+
+                <div class="nbt-section">
+                    <h4>药水效果</h4>
+                    <div id="potion-list"></div>
+                    <div class="btn-group"><button class="btn-secondary" onclick="addPotionRow()">+ 添加效果</button><button class="btn-secondary" onclick="removeLastRow('potion-list')">- 删除最后一行</button></div>
+                </div>
+
+                <div class="nbt-section">
+                    <h4>显示与隐藏</h4>
+                    <div class="form-row"><label>自定义名称</label><input type="text" id="give-custom-name" oninput="updatePreview()" placeholder='{"text":"神剑"}'></div>
+                    <div class="form-row"><label>描述</label><textarea id="give-lore" rows="3" oninput="updatePreview()" placeholder="每行一条"></textarea></div>
+                    <div class="checkbox-group"><label><input type="checkbox" class="hide-flag" value="1" onchange="updatePreview()"> 隐藏附魔</label><label><input type="checkbox" class="hide-flag" value="2" onchange="updatePreview()"> 隐藏属性</label><label><input type="checkbox" class="hide-flag" value="4" onchange="updatePreview()"> 隐藏不可破坏</label><label><input type="checkbox" class="hide-flag" value="32" onchange="updatePreview()"> 隐藏药水效果</label><label><input type="checkbox" class="hide-flag" value="16" onchange="updatePreview()"> 隐藏其他</label></div>
+                </div>
+
+                <div class="nbt-section">
+                    <h4>额外 NBT</h4>
+                    <div class="form-row"><label>原始 NBT</label><input type="text" id="give-extra-nbt" oninput="updatePreview()" placeholder='不含外层大括号'></div>
+                </div>
+            `;
+        }
+
+        function addEnchantRow() {
+            const div = document.createElement('div');
+            div.className = 'nbt-row';
+            div.innerHTML = `
+                ${renderSelectOptions(ENCHANT_OPTIONS, 'minecraft:sharpness', 'ench-id', 'onchange="updatePreview()"')}
+                <input type="number" class="ench-lvl" value="1" min="0" max="255" oninput="updatePreview()" placeholder="等级">
+                <button onclick="this.parentElement.remove(); updatePreview();">删除</button>
+            `;
+            document.getElementById('enchant-list').appendChild(div);
+            updatePreview();
+        }
+
+        function addAttrRow() {
+            const div = document.createElement('div');
+            div.className = 'nbt-row';
+            div.innerHTML = `
+                <input type="text" class="attr-name" value="generic.attack_damage" oninput="updatePreview()" placeholder="属性名">
+                <input type="number" class="attr-amount" value="1.0" step="0.1" oninput="updatePreview()" placeholder="数值">
+                <select class="attr-op" onchange="updatePreview()"><option value="0">加法</option><option value="1">乘法</option><option value="2">乘方</option></select>
+                <input type="text" class="attr-uuid" value="1,2,3,4" oninput="updatePreview()" placeholder="UUID">
+                <button onclick="this.parentElement.remove(); updatePreview();">删除</button>
+            `;
+            document.getElementById('attr-list').appendChild(div);
+            updatePreview();
+        }
+
+        function addPotionRow() {
+            const div = document.createElement('div');
+            div.className = 'nbt-row';
+            div.innerHTML = `
+                ${renderSelectOptions(POTION_EFFECT_OPTIONS, 'minecraft:speed', 'potion-id', 'onchange="updatePreview()"')}
+                <input type="number" class="potion-amp" value="0" min="0" max="255" oninput="updatePreview()" placeholder="等级">
+                <input type="number" class="potion-dur" value="600" min="0" oninput="updatePreview()" placeholder="持续时间">
+                <button onclick="this.parentElement.remove(); updatePreview();">删除</button>
+            `;
+            document.getElementById('potion-list').appendChild(div);
+            updatePreview();
+        }
+
+        function removeLastRow(listId) {
+            const list = document.getElementById(listId);
+            if (list.lastChild) {
+                list.removeChild(list.lastChild);
+                updatePreview();
+            }
+        }
+
+        function updateBuilder() {
+            const builderArea = document.getElementById('builder-area');
+            const cmdName = selectedPath[selectedPath.length - 1] || '';
+            if (cmdName === 'give') {
+                builderArea.innerHTML = buildGiveForm();
+                return;
+            }
+            const spec = resolveCommandSpec(selectedPath);
+            builderArea.innerHTML = renderSchemaFields(spec, selectedPath);
+        }
+
+        function updatePreview() {
+            const cmdName = selectedPath[selectedPath.length - 1] || '';
+            let finalCommand = '';
+
+            if (cmdName === 'give') {
+                const values = {
+                    target: document.getElementById('give-target')?.value || 'player_name',
+                    item: document.getElementById('give-item')?.value || 'minecraft:diamond_sword',
+                    count: document.getElementById('give-count')?.value || 1
+                };
+                finalCommand = buildGiveCommand(values);
+            } else {
+                const spec = resolveCommandSpec(selectedPath);
+                const values = readFormValues(spec);
+                const genericArgs = document.getElementById('generic-args');
+                if (genericArgs && genericArgs.value.trim()) values.args = genericArgs.value.trim();
+                finalCommand = spec && typeof spec.build === 'function' ? spec.build(values, selectedPath) : selectedPath.join(' ');
+            }
+
+            const customTail = document.getElementById('custom-command-tail')?.value.trim();
+            if (customTail) {
+                finalCommand = [finalCommand.trim(), customTail.trim()].filter(Boolean).join(' ');
+            }
+
+            const spec = resolveCommandSpec(selectedPath);
+            const validationBox = document.getElementById('command-validation');
+            if (validationBox) {
+                const issues = validateCommand(selectedPath, readFormValues(spec));
+                if (issues.length > 0) {
+                    validationBox.style.display = 'block';
+                    validationBox.textContent = '校验警告：' + issues.join('；');
+                } else {
+                    validationBox.style.display = 'none';
+                    validationBox.textContent = '';
+                }
+            }
+
+            currentCommandString = finalCommand;
+            document.getElementById('command-preview').textContent = currentCommandString;
+        }
+
+        async function loadCatalogs() {
+            try {
+                const res = await fetch('/api/catalogs');
+                const data = await res.json();
+                if (Array.isArray(data.items) && data.items.length) ITEM_OPTIONS = data.items;
+                if (Array.isArray(data.enchantments) && data.enchantments.length) ENCHANT_OPTIONS = data.enchantments;
+                if (Array.isArray(data.potions) && data.potions.length) POTION_EFFECT_OPTIONS = data.potions;
+                log('已加载物品/附魔/药水目录', 'info');
+            } catch (error) {
+                log('目录加载失败：' + error.message, 'error');
+            }
+        }
+
+        async function refreshCatalogs() {
+            try {
+                const res = await fetch('/api/catalogs/refresh', {method: 'POST'});
+                const data = await res.json();
+                if (Array.isArray(data.items) && data.items.length) ITEM_OPTIONS = data.items;
+                if (Array.isArray(data.enchantments) && data.enchantments.length) ENCHANT_OPTIONS = data.enchantments;
+                if (Array.isArray(data.potions) && data.potions.length) POTION_EFFECT_OPTIONS = data.potions;
+                log(data.message || '目录已刷新', 'info');
+                if (selectedPath[selectedPath.length - 1] === 'give') {
+                    updateBuilder();
+                    updatePreview();
+                }
+            } catch (error) {
+                log('刷新目录失败：' + error.message, 'error');
+            }
+        }
+
+        async function init() {
+            await loadCatalogs();
+            const res = await fetch('/api/commands');
+            commandTree = sortCommandTree(await res.json());
+            renderTree(commandTree, document.getElementById('command-tree'));
+            selectCommand(['give']);
+        }
+
+        function renderTree(nodes, container, level = 0, parentPath = []) {
+            container.innerHTML = '';
+            const ul = document.createElement('ul');
+            ul.className = 'cmd-tree';
+            ul.style.paddingLeft = level === 0 ? '0' : '16px';
+
+            sortCommandTree(nodes)
+                .filter(node => !HIDDEN_COMMANDS.has(node.name))
+                .forEach(node => {
+                const nodePath = parentPath.concat(node.name);
+                const li = document.createElement('li');
+                const div = document.createElement('div');
+                div.className = 'cmd-node';
+                div.dataset.name = node.name;
+
+                const hasChildren = node.children && node.children.length > 0;
+                const toggle = document.createElement('span');
+                toggle.className = 'toggle' + (hasChildren ? '' : ' hidden');
+                toggle.textContent = hasChildren ? '▶' : '';
+                if (hasChildren) {
+                    toggle.onclick = (e) => {
+                        e.stopPropagation();
+                        const childUl = li.querySelector('ul');
+                        if (childUl) {
+                            childUl.classList.toggle('collapsed');
+                            toggle.classList.toggle('expanded');
+                        }
+                    };
+                }
+
+                const name = document.createElement('span');
+                name.className = 'name';
+                name.textContent = node.name;
+
+                const desc = document.createElement('span');
+                desc.className = 'desc';
+                desc.textContent = node.description || '';
+
+                div.appendChild(toggle);
+                div.appendChild(name);
+                div.appendChild(desc);
+
+                div.onclick = (e) => {
+                    e.stopPropagation();
+                    document.querySelectorAll('.cmd-node').forEach(n => n.classList.remove('active'));
+                    div.classList.add('active');
+                    selectCommand(nodePath);
+                };
+
+                li.appendChild(div);
+
+                if (hasChildren) {
+                    const childContainer = document.createElement('div');
+                    renderTree(node.children, childContainer, level + 1, nodePath);
+                    const childUl = childContainer.querySelector('ul');
+                    if (level >= 1) childUl.classList.add('collapsed');
+                    li.appendChild(childUl);
+                }
+
+                ul.appendChild(li);
+            });
+
+            container.appendChild(ul);
+        }
+
+        function selectCommand(path) {
+            selectedPath = path;
+            updateBuilder();
+            updatePreview();
+        }
+
+        async function connectRCON() {
+            const host = document.getElementById('host').value;
+            const port = parseInt(document.getElementById('port').value);
+            const password = document.getElementById('password').value;
+            try {
+                const res = await fetch('/api/connect', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({host, port, password})
+                });
+                const data = await res.json();
+                if (data.success) {
+                    isConnected = true;
+                    updateStatus(true);
+                }
+                log(data.message || (data.success ? '连接成功' : '连接失败'), data.success ? 'info' : 'error');
+            } catch (e) {
+                log('连接异常: ' + e.message, 'error');
+            }
+        }
+
+        async function disconnectRCON() {
+            const res = await fetch('/api/disconnect', {method: 'POST'});
+            const data = await res.json();
+            isConnected = false;
+            updateStatus(false);
+            log(data.message || '已断开', 'info');
+        }
+
+        function updateStatus(connected) {
+            const dot = document.getElementById('status-dot');
+            const text = document.getElementById('status-text');
+            if (connected) {
+                dot.classList.add('connected');
+                text.textContent = '已连接';
+                text.style.color = 'var(--success)';
+            } else {
+                dot.classList.remove('connected');
+                text.textContent = '未连接';
+                text.style.color = 'var(--text-secondary)';
+            }
+        }
+
+        async function sendCommand() {
+            let rawCommand = currentCommandString.trim();
+            if (!rawCommand) {
+                log('命令为空', 'error');
+                return;
+            }
+            if (rawCommand.startsWith('/')) rawCommand = rawCommand.slice(1);
+            if (hasAtSelector(rawCommand)) {
+                log('RCON 不接受 @ 系列选择器，请改为具体玩家名或坐标', 'error');
+                return;
+            }
+            try {
+                const res = await fetch('/api/send', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({command: rawCommand})
+                });
+                const data = await res.json();
+                if (data.success) {
+                    log('>>> ' + rawCommand, 'send');
+                    log('<<< ' + data.response, 'recv');
+                } else {
+                    log('发送失败: ' + data.message, 'error');
+                }
+            } catch (e) {
+                log('发送异常: ' + e.message, 'error');
+            }
+        }
+
+        function buildCopyCommand() {
+            let value = currentCommandString.trim();
+            const useSlash = document.getElementById('copy-leading-slash')?.checked;
+            const useAtSelector = document.getElementById('copy-at-selector')?.checked;
+            if (useSlash && !value.startsWith('/')) value = '/' + value;
+            if (useAtSelector) {
+                value = value.replace(/\bplayer_name\b/g, '@p');
+            }
+            return value;
+        }
+
+        function copyCommand() {
+            const copyValue = buildCopyCommand();
+            navigator.clipboard.writeText(copyValue).then(() => log('命令已复制到剪贴板（按格式选项处理）', 'info'));
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+
+        function log(msg, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const time = new Date().toLocaleTimeString('zh-CN', {hour12: false});
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.innerHTML = `<span class=\"log-time\">[${time}]</span>${escapeHtml(msg)}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function filterCommands() {
+            const query = document.getElementById('cmd-search').value.toLowerCase();
+            document.querySelectorAll('.cmd-node').forEach(node => {
+                const name = node.dataset.name.toLowerCase();
+                const desc = (node.querySelector('.desc')?.textContent || '').toLowerCase();
+                const match = name.includes(query) || desc.includes(query);
+                node.style.display = match ? 'flex' : 'none';
+                let parent = node.parentElement.parentElement;
+                while (parent && parent.classList.contains('cmd-tree')) {
+                    const parentLi = parent.closest('li');
+                    if (match && parentLi) {
+                        const parentNode = parentLi.querySelector(':scope > .cmd-node');
+                        if (parentNode) parentNode.style.display = 'flex';
+                        const ul = parentLi.querySelector('ul');
+                        if (ul) ul.classList.remove('collapsed');
+                    }
+                    parent = parent.parentElement?.closest('ul');
+                }
+            });
+        }
+
+        init();
+    </script>
+</body>
+</html>
