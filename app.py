@@ -132,6 +132,16 @@ CATALOG_ITEMS = load_catalog_json('items.json', DEFAULT_ITEM_OPTIONS)
 CATALOG_ENCHANTMENTS = load_catalog_json('enchantments.json', DEFAULT_ENCHANT_OPTIONS)
 CATALOG_POTIONS = load_catalog_json('potions.json', DEFAULT_POTION_EFFECT_OPTIONS)
 
+
+def get_catalog_payload():
+    return {
+        'items': load_catalog_json('items.json', DEFAULT_ITEM_OPTIONS),
+        'enchantments': load_catalog_json('enchantments.json', DEFAULT_ENCHANT_OPTIONS),
+        'potions': load_catalog_json('potions.json', DEFAULT_POTION_EFFECT_OPTIONS),
+        'source': 'local'
+    }
+
+
 COMMON_COMMAND_PRIORITY = ['effect', 'give', 'gamemode', 'op', 'deop', 'stop', 'time', 'weather', 'teleport', 'summon', 'title', 'say', 'msg', 'tellraw']
 
 
@@ -187,23 +197,14 @@ def api_commands():
 
 @app.route('/api/catalogs')
 def api_catalogs():
-    return jsonify({
-        'items': load_catalog_json('items.json', DEFAULT_ITEM_OPTIONS),
-        'enchantments': load_catalog_json('enchantments.json', DEFAULT_ENCHANT_OPTIONS),
-        'potions': load_catalog_json('potions.json', DEFAULT_POTION_EFFECT_OPTIONS),
-        'source': 'local'
-    })
+    return jsonify(get_catalog_payload())
 
 
 @app.route('/api/catalogs/refresh', methods=['POST'])
 def api_catalogs_refresh():
-    return jsonify({
-        'items': load_catalog_json('items.json', DEFAULT_ITEM_OPTIONS),
-        'enchantments': load_catalog_json('enchantments.json', DEFAULT_ENCHANT_OPTIONS),
-        'potions': load_catalog_json('potions.json', DEFAULT_POTION_EFFECT_OPTIONS),
-        'source': 'local',
-        'message': '已刷新本地物品/附魔目录'
-    })
+    payload = get_catalog_payload()
+    payload['message'] = '已刷新本地物品/附魔目录'
+    return jsonify(payload)
 
 
 @app.route('/api/connect', methods=['POST'])

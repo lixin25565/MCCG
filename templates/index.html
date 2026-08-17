@@ -263,10 +263,11 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            min-width: 0;
         }
 
         .main-header {
-            padding: 20px 24px;
+            padding: clamp(12px, 2vw, 20px) clamp(14px, 2vw, 24px);
             border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
@@ -280,7 +281,7 @@
 
         /* 命令预览 */
         .preview-section {
-            padding: 16px 24px;
+            padding: clamp(12px, 2vw, 16px) clamp(14px, 2vw, 24px);
             border-bottom: 1px solid var(--border-color);
         }
 
@@ -298,7 +299,7 @@
             border-radius: 8px;
             padding: 12px 16px;
             font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 0.95rem;
+            font-size: clamp(0.8rem, 1.3vw, 0.95rem);
             color: var(--accent);
             word-break: break-all;
             min-height: 44px;
@@ -306,11 +307,138 @@
             align-items: center;
         }
 
+        .utility-panel {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(260px, 1fr));
+            gap: 12px;
+            padding: 12px 24px 0;
+        }
+
+        .utility-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .utility-card .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(255,255,255,0.02);
+        }
+
+        .utility-card h4 {
+            color: var(--accent);
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .collapse-toggle {
+            padding: 5px 10px;
+            border-radius: 5px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 0.72rem;
+        }
+
+        .utility-card .panel-body {
+            padding: 12px 14px;
+        }
+
+        .utility-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        .utility-row input,
+        .utility-row select {
+            flex: 1 1 170px;
+            min-width: 120px;
+            padding: 8px 10px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 6px;
+        }
+
+        .command-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 190px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .saved-command-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+        }
+
+        .saved-command-item .saved-command-text {
+            flex: 1;
+            min-width: 0;
+            font-size: 0.8rem;
+            color: var(--text-primary);
+            word-break: break-all;
+        }
+
+        .saved-command-action {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .group-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .group-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.8rem;
+        }
+
+        .group-item-name {
+            flex: 1;
+            min-width: 0;
+            color: var(--text-primary);
+            word-break: break-all;
+        }
+
+        .saved-command-action button {
+            padding: 5px 8px;
+            font-size: 0.72rem;
+        }
+
         /* 构建区域 */
         .builder-section {
             flex: 1;
             overflow-y: auto;
             padding: 16px 24px;
+            min-height: 0;
         }
 
         .builder-section::-webkit-scrollbar {
@@ -521,15 +649,84 @@
         }
 
         /* 响应式 */
+        @media (max-width: 980px) {
+            .utility-panel {
+                grid-template-columns: 1fr;
+            }
+        }
+
         @media (max-width: 768px) {
             body {
                 flex-direction: column;
+                height: auto;
+                min-height: 100vh;
+                overflow: auto;
             }
             #sidebar {
                 width: 100%;
-                height: 40vh;
+                height: 42vh;
+                min-height: 360px;
                 border-right: none;
                 border-bottom: 1px solid var(--border-color);
+            }
+            #main {
+                min-height: 58vh;
+            }
+            .action-bar {
+                flex-wrap: wrap;
+            }
+            .action-bar button {
+                flex: 1 1 140px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .conn-panel,
+            .sidebar-header,
+            .search-box,
+            .preview-section,
+            .builder-section,
+            .action-bar,
+            .utility-panel {
+                padding-left: 10px;
+                padding-right: 10px;
+            }
+
+            .main-header {
+                padding-left: 10px;
+                padding-right: 10px;
+            }
+
+            .utility-panel {
+                grid-template-columns: 1fr;
+                gap: 8px;
+                padding-top: 8px;
+            }
+
+            .action-bar {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(120px, 1fr));
+                gap: 8px;
+            }
+
+            .action-bar button,
+            .utility-row > * {
+                width: 100%;
+                flex: 1 1 100%;
+            }
+
+            .panel-header {
+                align-items: flex-start;
+            }
+
+            .saved-command-item,
+            .group-item {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .saved-command-action {
+                justify-content: flex-end;
             }
         }
 
@@ -581,6 +778,42 @@
         <div class="builder-section" id="builder-area">
             <!-- 动态生成 -->
         </div>
+
+        <div class="utility-panel">
+            <div class="utility-card collapsible-panel">
+                <div class="panel-header">
+                    <h4>💾 命令保存 / 批量执行</h4>
+                    <button class="collapse-toggle" onclick="togglePanel(this.closest('.collapsible-panel'))">收起</button>
+                </div>
+                <div class="panel-body">
+                    <div class="utility-row">
+                        <input id="saved-command-name" type="text" placeholder="命令名称" />
+                        <button class="btn-secondary" onclick="saveCurrentCommand()">保存命令</button>
+                    </div>
+                    <div class="utility-row">
+                        <input id="new-group-name" type="text" placeholder="新建命令组名称" />
+                        <button class="btn-secondary" onclick="createCommandGroup()">创建组</button>
+                    </div>
+                    <div class="utility-row">
+                        <select id="command-group-select"></select>
+                        <button class="btn-secondary" onclick="addCurrentCommandToGroup()">加入当前</button>
+                        <button class="btn-primary" onclick="executeSelectedGroup()">执行组</button>
+                    </div>
+                    <div id="command-group-list" class="group-list"></div>
+                </div>
+            </div>
+
+            <div class="utility-card collapsible-panel">
+                <div class="panel-header">
+                    <h4>📚 已保存命令</h4>
+                    <button class="collapse-toggle" onclick="togglePanel(this.closest('.collapsible-panel'))">收起</button>
+                </div>
+                <div class="panel-body">
+                    <div id="saved-command-list" class="command-list"></div>
+                </div>
+            </div>
+        </div>
+
         <div class="action-bar">
             <button class="btn-primary" onclick="sendCommand()">📤 发送命令</button>
             <button class="btn-secondary" onclick="copyCommand()">📋 复制命令</button>
@@ -602,31 +835,16 @@
         let selectedPath = [];
         let currentCommandString = '';
         let isConnected = false;
+        let savedCommands = [];
+        let commandGroups = [];
 
+        const STORAGE_KEY = 'mccg_saved_commands';
+        const GROUP_STORAGE_KEY = 'mccg_command_groups';
         const COMMON_COMMAND_PRIORITY = ['effect', 'give', 'gamemode', 'op', 'deop', 'stop', 'time', 'weather', 'teleport', 'summon', 'title', 'say', 'msg', 'tellraw'];
         const HIDDEN_COMMANDS = new Set(['execute', 'scoreboard', 'bossbar', 'attribute', 'loot', 'tellraw']);
-        let ITEM_OPTIONS = [
-            ['minecraft:diamond_sword', '钻石剑'], ['minecraft:diamond_pickaxe', '钻石镐'], ['minecraft:diamond_axe', '钻石斧'],
-            ['minecraft:diamond_shovel', '钻石铲'], ['minecraft:diamond_hoe', '钻石锄'], ['minecraft:diamond_helmet', '钻石头盔'],
-            ['minecraft:diamond_chestplate', '钻石胸甲'], ['minecraft:diamond_leggings', '钻石护腿'], ['minecraft:diamond_boots', '钻石靴子'],
-            ['minecraft:bow', '弓'], ['minecraft:crossbow', '十字弓'], ['minecraft:trident', '三叉戟'], ['minecraft:shield', '盾牌'],
-            ['minecraft:elytra', '鞘翅'], ['minecraft:golden_apple', '金苹果'], ['minecraft:enchanted_golden_apple', '附魔金苹果'],
-            ['minecraft:stick', '木棍'], ['minecraft:stone', '石头'], ['minecraft:glass', '玻璃']
-        ];
-        let ENCHANT_OPTIONS = [
-            ['minecraft:sharpness', '锋利'], ['minecraft:smite', '亡灵杀手'], ['minecraft:bane_of_arthropods', '节肢杀手'],
-            ['minecraft:efficiency', '效率'], ['minecraft:unbreaking', '耐久'], ['minecraft:looting', '掠夺'],
-            ['minecraft:protection', '保护'], ['minecraft:fire_protection', '火焰保护'], ['minecraft:blast_protection', '爆炸保护'],
-            ['minecraft:projectile_protection', '弹射物保护'], ['minecraft:respiration', '水下呼吸'], ['minecraft:aqua_affinity', '水下速掘'],
-            ['minecraft:thorns', '荆棘'], ['minecraft:power', '力量'], ['minecraft:punch', '冲击'], ['minecraft:flame', '火矢']
-        ];
-        let POTION_EFFECT_OPTIONS = [
-            ['minecraft:speed', '速度'], ['minecraft:slowness', '缓慢'], ['minecraft:haste', '急迫'], ['minecraft:mining_fatigue', '挖掘疲劳'],
-            ['minecraft:strength', '力量'], ['minecraft:instant_health', '瞬间治疗'], ['minecraft:instant_damage', '瞬间伤害'], ['minecraft:jump_boost', '跳跃提升'],
-            ['minecraft:nausea', '反胃'], ['minecraft:regeneration', '再生'], ['minecraft:resistance', '抗性提升'], ['minecraft:fire_resistance', '抗火'],
-            ['minecraft:water_breathing', '水下呼吸'], ['minecraft:invisibility', '隐身'], ['minecraft:blindness', '失明'], ['minecraft:night_vision', '夜视'],
-            ['minecraft:hunger', '饥饿'], ['minecraft:weakness', '虚弱'], ['minecraft:poison', '中毒'], ['minecraft:wither', '凋零'], ['minecraft:health_boost', '生命提升']
-        ];
+        let ITEM_OPTIONS = [];
+        let ENCHANT_OPTIONS = [];
+        let POTION_EFFECT_OPTIONS = [];
 
         function sortCommandTree(nodes) {
             if (!Array.isArray(nodes)) return [];
@@ -639,9 +857,253 @@
             });
         }
 
+        function loadStoredState() {
+            try {
+                const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+                const groups = JSON.parse(localStorage.getItem(GROUP_STORAGE_KEY) || '[]');
+                savedCommands = Array.isArray(saved) ? saved : [];
+                commandGroups = Array.isArray(groups) ? groups : [];
+            } catch (error) {
+                savedCommands = [];
+                commandGroups = [];
+            }
+        }
+
+        function saveStoredState() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(savedCommands));
+            localStorage.setItem(GROUP_STORAGE_KEY, JSON.stringify(commandGroups));
+        }
+
+        function renderSavedCommands() {
+            const list = document.getElementById('saved-command-list');
+            const select = document.getElementById('command-group-select');
+            const groupList = document.getElementById('command-group-list');
+            if (!list) return;
+
+            if (!savedCommands.length) {
+                list.innerHTML = '<div class="saved-command-item"><span class="saved-command-text">暂无保存命令</span></div>';
+            } else {
+                list.innerHTML = savedCommands.map((saved) => `
+                    <div class="saved-command-item">
+                        <span class="saved-command-text">${escapeHtml(saved.name || '未命名命令')}</span>
+                        <div class="saved-command-action">
+                            <button class="btn-secondary" onclick="executeSavedCommand('${saved.id}')">执行</button>
+                            <button class="btn-secondary" onclick="removeSavedCommand('${saved.id}')">删除</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            if (groupList) {
+                if (!commandGroups.length) {
+                    groupList.innerHTML = '<div class="group-item"><span class="group-item-name">暂无命令组</span></div>';
+                } else {
+                    groupList.innerHTML = commandGroups.map((group) => `
+                        <div class="group-item">
+                            <span class="group-item-name">${escapeHtml(group.name)}</span>
+                            <div class="saved-command-action">
+                                <button class="btn-secondary" onclick="selectGroup('${group.id}')">选择</button>
+                                <button class="btn-secondary" onclick="deleteCommandGroup('${group.id}')">删除</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }
+
+            if (select) {
+                const options = commandGroups.length
+                    ? commandGroups.map((group) => `<option value="${group.id}">${escapeHtml(group.name)}</option>`).join('')
+                    : '<option value="">请选择命令组</option>';
+                select.innerHTML = options;
+            }
+        }
+
+        function createUuid() {
+            return 'cmd-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+        }
+
+        function saveCurrentCommand() {
+            const input = document.getElementById('saved-command-name');
+            const name = (input?.value || '').trim() || prompt('请输入该命令的名称：', '快捷命令') || '快捷命令';
+            const command = currentCommandString.trim();
+            if (!command) {
+                log('当前没有命令可保存', 'error');
+                return;
+            }
+            const item = { id: createUuid(), name, command, createdAt: Date.now() };
+            savedCommands.unshift(item);
+            saveStoredState();
+            renderSavedCommands();
+            if (input) input.value = '';
+            log('已保存命令：' + name, 'info');
+        }
+
+        function removeSavedCommand(id) {
+            savedCommands = savedCommands.filter((item) => item.id !== id);
+            commandGroups = commandGroups.map((group) => ({
+                ...group,
+                commands: (group.commands || []).filter((cmdId) => cmdId !== id)
+            }));
+            saveStoredState();
+            renderSavedCommands();
+            log('已删除保存命令', 'info');
+        }
+
+        function createCommandGroup() {
+            const input = document.getElementById('new-group-name');
+            const name = (input?.value || '').trim() || prompt('请输入命令组名称：', '默认组') || '默认组';
+            const group = { id: createUuid(), name, commands: [] };
+            commandGroups.push(group);
+            saveStoredState();
+            renderSavedCommands();
+            if (input) input.value = '';
+            log('已创建命令组：' + name, 'info');
+        }
+
+        function selectGroup(groupId) {
+            const select = document.getElementById('command-group-select');
+            if (!select) return;
+            select.value = groupId;
+            log('已选择命令组：' + (commandGroups.find((group) => group.id === groupId)?.name || '未知组'), 'info');
+        }
+
+        function deleteCommandGroup(groupId) {
+            const group = commandGroups.find((item) => item.id === groupId);
+            if (!group) {
+                log('未找到命令组', 'error');
+                return;
+            }
+            commandGroups = commandGroups.filter((item) => item.id !== groupId);
+            const select = document.getElementById('command-group-select');
+            if (select && select.value === groupId) select.value = '';
+            saveStoredState();
+            renderSavedCommands();
+            log('已删除命令组：' + group.name, 'info');
+        }
+
+        function addCurrentCommandToGroup() {
+            const select = document.getElementById('command-group-select');
+            const groupId = select?.value;
+            const command = currentCommandString.trim();
+            if (!groupId) {
+                log('请先选择一个命令组', 'error');
+                return;
+            }
+            if (!command) {
+                log('当前没有命令可加入组', 'error');
+                return;
+            }
+            const group = commandGroups.find((item) => item.id === groupId);
+            if (!group) {
+                log('命令组不存在', 'error');
+                return;
+            }
+            const existing = savedCommands.find((item) => item.command === command);
+            const saved = existing || { id: createUuid(), name: '临时命令', command, createdAt: Date.now() };
+            if (!existing) savedCommands.unshift(saved);
+            if (!group.commands.includes(saved.id)) group.commands.push(saved.id);
+            saveStoredState();
+            renderSavedCommands();
+            log('已加入组：' + group.name, 'info');
+        }
+
+        async function executeSavedCommand(id) {
+            const saved = savedCommands.find((item) => item.id === id);
+            if (!saved) {
+                log('未找到保存的命令', 'error');
+                return;
+            }
+            await sendCommandRequest(saved.command);
+        }
+
+        async function executeSelectedGroup() {
+            const select = document.getElementById('command-group-select');
+            const groupId = select?.value;
+            const group = commandGroups.find((item) => item.id === groupId);
+            if (!group) {
+                log('请先选择命令组', 'error');
+                return;
+            }
+            const commands = (group.commands || [])
+                .map((id) => savedCommands.find((entry) => entry.id === id))
+                .filter(Boolean)
+                .map((entry) => entry.command)
+                .filter(Boolean);
+            if (!commands.length) {
+                log('命令组为空，无法执行', 'info');
+                return;
+            }
+            log('开始执行命令组：' + group.name, 'info');
+            for (const command of commands) {
+                await sendCommandRequest(command);
+            }
+            log('命令组执行完成：' + group.name, 'info');
+        }
+
+        function getItemCategory(itemValue) {
+            const value = String(itemValue || '').toLowerCase();
+            if (!value) return 'general';
+            if (value.includes('sword')) return 'sword';
+            if (value.includes('helmet') || value.includes('chestplate') || value.includes('leggings') || value.includes('boots')) return 'armor';
+            if (value.includes('pickaxe') || value.includes('axe') || value.includes('shovel') || value.includes('hoe')) return 'tool';
+            if (value.includes('bow') || value.includes('crossbow') || value.includes('trident')) return 'ranged';
+            if (value.includes('potion')) return 'potion';
+            return 'general';
+        }
+
+        function getAllowedEnchantmentsForItem(itemValue) {
+            const category = getItemCategory(itemValue);
+            const map = {
+                sword: ['minecraft:sharpness', 'minecraft:smite', 'minecraft:bane_of_arthropods', 'minecraft:looting', 'minecraft:knockback', 'minecraft:fire_aspect', 'minecraft:sweeping', 'minecraft:unbreaking', 'minecraft:mending'],
+                armor: ['minecraft:protection', 'minecraft:fire_protection', 'minecraft:blast_protection', 'minecraft:projectile_protection', 'minecraft:thorns', 'minecraft:respiration', 'minecraft:aqua_affinity', 'minecraft:unbreaking', 'minecraft:mending'],
+                tool: ['minecraft:efficiency', 'minecraft:unbreaking', 'minecraft:silkence', 'minecraft:looting', 'minecraft:fortune', 'minecraft:luck_of_the_sea'],
+                ranged: ['minecraft:power', 'minecraft:punch', 'minecraft:flame', 'minecraft:infinity', 'minecraft:quick_charge', 'minecraft:multishot', 'minecraft:piercing', 'minecraft:unbreaking'],
+                general: Array.from(new Set(ENCHANT_OPTIONS.map(([value]) => value)))
+            };
+            return new Set(map[category] || map.general);
+        }
+
+        function shouldShowPotionSection(itemValue) {
+            const value = String(itemValue || '').toLowerCase();
+            return value.includes('potion') || value.includes('splash_potion') || value.includes('lingering_potion');
+        }
+
+        function refreshGiveFormState() {
+            const itemSelect = document.getElementById('give-item');
+            const itemValue = itemSelect ? itemSelect.value : 'minecraft:diamond_sword';
+            const potionSection = document.getElementById('potion-list')?.closest('.nbt-section');
+            const enchantSection = document.getElementById('enchant-list')?.closest('.nbt-section');
+
+            if (potionSection) {
+                potionSection.style.display = shouldShowPotionSection(itemValue) ? '' : 'none';
+            }
+            if (enchantSection) {
+                const allowed = getAllowedEnchantmentsForItem(itemValue);
+                enchantSection.style.display = allowed.size ? '' : 'none';
+            }
+
+            document.querySelectorAll('#enchant-list .ench-id').forEach((select) => {
+                const options = Array.from(select.options);
+                const validSet = getAllowedEnchantmentsForItem(itemValue);
+                let firstVisible = null;
+                options.forEach((option) => {
+                    const allowed = validSet.has(option.value);
+                    option.hidden = !allowed;
+                    option.disabled = !allowed;
+                    if (allowed && !firstVisible) firstVisible = option;
+                });
+                if (!options.some((option) => !option.hidden && option.value === select.value)) {
+                    select.value = firstVisible ? firstVisible.value : options[0]?.value || '';
+                }
+            });
+        }
+
         function renderSelectOptions(options, value, className, extra = '') {
-            const selected = value || options[0][0];
-            const html = options.map(([optionValue, label]) => `<option value="${optionValue}" ${optionValue === selected ? 'selected' : ''}>${label}</option>`).join('');
+            const list = Array.isArray(options) ? options : [];
+            const selected = value || (list[0] ? list[0][0] : '');
+            const html = list.length
+                ? list.map(([optionValue, label]) => `<option value="${optionValue}" ${optionValue === selected ? 'selected' : ''}>${label}</option>`).join('')
+                : '<option value="">无可用选项</option>';
             return `<select class="${className}" ${extra}>${html}</select>`;
         }
 
@@ -1249,7 +1711,19 @@
             }
         }
 
+        function togglePanel(panel) {
+            if (!panel) return;
+            const body = panel.querySelector('.panel-body');
+            const button = panel.querySelector('.collapse-toggle');
+            if (!body || !button) return;
+            const isCollapsed = body.style.display === 'none';
+            body.style.display = isCollapsed ? '' : 'none';
+            button.textContent = isCollapsed ? '收起' : '展开';
+        }
+
         async function init() {
+            loadStoredState();
+            renderSavedCommands();
             await loadCatalogs();
             const res = await fetch('/api/commands');
             commandTree = sortCommandTree(await res.json());
@@ -1371,33 +1845,39 @@
             }
         }
 
-        async function sendCommand() {
-            let rawCommand = currentCommandString.trim();
-            if (!rawCommand) {
+        async function sendCommandRequest(rawCommand) {
+            let commandText = String(rawCommand || '').trim();
+            if (!commandText) {
                 log('命令为空', 'error');
-                return;
+                return { success: false };
             }
-            if (rawCommand.startsWith('/')) rawCommand = rawCommand.slice(1);
-            if (hasAtSelector(rawCommand)) {
+            if (commandText.startsWith('/')) commandText = commandText.slice(1);
+            if (hasAtSelector(commandText)) {
                 log('RCON 不接受 @ 系列选择器，请改为具体玩家名或坐标', 'error');
-                return;
+                return { success: false };
             }
             try {
                 const res = await fetch('/api/send', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({command: rawCommand})
+                    body: JSON.stringify({command: commandText})
                 });
                 const data = await res.json();
                 if (data.success) {
-                    log('>>> ' + rawCommand, 'send');
+                    log('>>> ' + commandText, 'send');
                     log('<<< ' + data.response, 'recv');
-                } else {
-                    log('发送失败: ' + data.message, 'error');
+                    return { success: true, response: data.response };
                 }
+                log('发送失败: ' + data.message, 'error');
+                return { success: false, message: data.message };
             } catch (e) {
                 log('发送异常: ' + e.message, 'error');
+                return { success: false, message: e.message };
             }
+        }
+
+        async function sendCommand() {
+            await sendCommandRequest(currentCommandString);
         }
 
         function buildCopyCommand() {
