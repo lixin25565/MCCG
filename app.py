@@ -6,17 +6,18 @@ import yaml
 from flask import Flask, request, jsonify, render_template
 from mcrcon import MCRcon
 
-app = Flask(__name__)
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+app = Flask(__name__, template_folder=os.path.join(PROJECT_ROOT, 'templates'))
 
 # ==================== 命令表加载 ====================
-COMMAND_FILE = 'catalogs/commands.yaml'
+COMMAND_FILE = os.path.join(PROJECT_ROOT, 'catalogs', 'commands.yaml')
 if not os.path.exists(COMMAND_FILE):
-    raise FileNotFoundError(f"未找到 {COMMAND_FILE}，请将命令表 YAML 文件放在当前目录")
+    raise FileNotFoundError(f"未找到命令表 YAML 文件：{COMMAND_FILE}")
 
 with open(COMMAND_FILE, 'r', encoding='utf-8') as f:
     COMMAND_DATA = yaml.safe_load(f)
 
-CATALOG_DIRECTORY = os.path.join(os.path.dirname(__file__), 'catalogs')
+CATALOG_DIRECTORY = os.path.join(PROJECT_ROOT, 'catalogs')
 
 
 def load_catalog_json(filename, default=None, expected_type=None):
