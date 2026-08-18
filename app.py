@@ -3,10 +3,16 @@ import os
 import re
 import threading
 import yaml
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, send_from_directory
 from mcrcon import MCRcon
 
 app = Flask(__name__)
+
+@app.route('/static/<path:filename>')
+def static_files(filename):
+    response = send_from_directory('static', filename)
+    response.headers['Cache-Control'] = 'public, max-age=86400'
+    return response
 
 # ==================== 命令表加载 ====================
 COMMAND_FILE = 'catalogs/commands.yaml'

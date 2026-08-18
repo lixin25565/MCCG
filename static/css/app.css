@@ -1,0 +1,57 @@
+/* ===== 新增/优化项 ===== */
+
+/* 1. CSS 变量扩展 */
+:root {
+    /* 原有变量保留 */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+/* 2. 减少重排：命令树使用 transform 代替 max-height */
+.cmd-tree ul {
+    overflow: hidden;
+    transition: transform 0.25s ease, opacity 0.25s ease;
+    transform-origin: top;
+}
+.cmd-tree ul.collapsed {
+    transform: scaleY(0);
+    opacity: 0;
+    height: 0;
+}
+
+/* 3. 搜索高亮 */
+.cmd-tree-item.highlight > .cmd-node {
+    background: rgba(0, 212, 170, 0.08);
+    border-left-color: var(--accent);
+}
+
+/* 4. 构建器占位符动画 */
+.placeholder {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 60px 20px;
+    animation: fadeIn 0.5s ease;
+}
+
+/* 5. 按钮点击反馈 */
+button:active {
+    transform: scale(0.97);
+}
+
+/* 6. 滚动条统一 */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-color) transparent;
+}
+
+/* 7. 减少动画（用户偏好） */
+@media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
