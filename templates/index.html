@@ -6,19 +6,35 @@
     <title>Minecraft 1.21.1 RCON WebUI</title>
     <style>
         :root {
-            --bg-primary: #0f0f23;
-            --bg-secondary: #1a1a2e;
-            --bg-card: #16213e;
-            --bg-hover: #1e2a4a;
-            --border-color: #2a3f5f;
-            --text-primary: #e0e0e0;
-            --text-secondary: #a0aec0;
-            --accent: #00d4aa;
-            --accent-hover: #00b894;
-            --danger: #e74c3c;
-            --warning: #f39c12;
-            --success: #2ecc71;
-            --info: #3498db;
+            --md-bg: #f3f6fb;
+            --md-surface: #ffffff;
+            --md-surface-2: #eef3ff;
+            --md-surface-3: #f7f9fc;
+            --md-outline: #dfe7f2;
+            --md-primary: #1976d2;
+            --md-primary-strong: #1565c0;
+            --md-primary-soft: rgba(25, 118, 210, 0.12);
+            --md-secondary: #37474f;
+            --md-text: #1f2937;
+            --md-text-soft: #64748b;
+            --md-success: #2e7d32;
+            --md-warning: #f9a825;
+            --md-error: #d32f2f;
+            --md-info: #0288d1;
+            --md-shadow: 0 10px 28px rgba(15, 23, 42, 0.12);
+            --md-shadow-soft: 0 4px 12px rgba(15, 23, 42, 0.08);
+            --bg-primary: var(--md-surface-3);
+            --bg-secondary: var(--md-surface-2);
+            --bg-card: var(--md-surface);
+            --border-color: var(--md-outline);
+            --accent: var(--md-primary);
+            --accent-strong: var(--md-primary-strong);
+            --text-primary: var(--md-text);
+            --text-secondary: var(--md-text-soft);
+            --danger: var(--md-error);
+            --success: var(--md-success);
+            --warning: var(--md-warning);
+            --info: var(--md-info);
         }
 
         * {
@@ -28,170 +44,194 @@
         }
 
         body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
+            font-family: 'Roboto', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #f3f6fb 0%, #eef3ff 100%);
+            color: var(--md-text);
             height: 100vh;
             display: flex;
             overflow: hidden;
             overflow-x: hidden;
         }
 
-        /* 侧边栏 */
         #sidebar {
-            width: 320px;
-            background: var(--bg-secondary);
-            border-right: 1px solid var(--border-color);
+            width: 340px;
+            background: rgba(255, 255, 255, 0.78);
+            backdrop-filter: blur(12px);
+            border-right: 1px solid var(--md-outline);
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            box-shadow: var(--md-shadow-soft);
         }
 
         .sidebar-header {
-            padding: 20px;
-            border-bottom: 1px solid var(--border-color);
+            padding: 22px 20px 18px;
+            border-bottom: 1px solid var(--md-outline);
+            background: linear-gradient(180deg, rgba(25, 118, 210, 0.08), rgba(255,255,255,0.02));
         }
 
         .sidebar-header h2 {
-            font-size: 1.1rem;
-            color: var(--accent);
-            margin-bottom: 4px;
+            font-size: 1.08rem;
+            color: var(--md-primary);
+            margin-bottom: 6px;
+            letter-spacing: 0.02em;
         }
 
         .sidebar-header p {
             font-size: 0.8rem;
-            color: var(--text-secondary);
+            color: var(--md-text-soft);
         }
 
-        /* 连接面板 */
         .conn-panel {
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border-color);
+            padding: 18px 18px 16px;
+            border-bottom: 1px solid var(--md-outline);
         }
 
         .status-indicator {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             margin-bottom: 12px;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
+            color: var(--md-text-soft);
+            font-weight: 500;
         }
 
         .status-dot {
-            width: 8px;
-            height: 8px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
-            background: var(--danger);
-            box-shadow: 0 0 8px var(--danger);
-            transition: all 0.3s;
+            background: var(--md-error);
+            box-shadow: 0 0 0 4px rgba(211, 47, 47, 0.12);
+            transition: all 0.3s ease;
         }
 
         .status-dot.connected {
-            background: var(--success);
-            box-shadow: 0 0 8px var(--success);
+            background: var(--md-success);
+            box-shadow: 0 0 0 4px rgba(46, 125, 50, 0.12);
+        }
+
+        .conn-panel input,
+        .search-box input,
+        .utility-row input,
+        .utility-row select,
+        .form-row input,
+        .form-row select,
+        .form-row textarea,
+        .nbt-row input,
+        .nbt-row select {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid var(--md-outline);
+            border-radius: 10px;
+            color: var(--md-text);
+            font-size: 0.88rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+            box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.03);
         }
 
         .conn-panel input {
-            width: 100%;
-            margin: 4px 0;
-            padding: 8px 12px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            color: var(--text-primary);
-            font-size: 0.9rem;
-            transition: border-color 0.2s;
+            margin: 5px 0;
+            padding: 10px 12px;
         }
 
-        .conn-panel input:focus {
+        .conn-panel input:focus,
+        .search-box input:focus,
+        .utility-row input:focus,
+        .utility-row select:focus,
+        .form-row input:focus,
+        .form-row select:focus,
+        .form-row textarea:focus,
+        .nbt-row input:focus,
+        .nbt-row select:focus {
             outline: none;
-            border-color: var(--accent);
+            border-color: var(--md-primary);
+            box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.12);
         }
 
         .btn-group {
             display: flex;
             gap: 8px;
-            margin-top: 8px;
+            margin-top: 12px;
         }
 
         button {
-            padding: 8px 16px;
+            appearance: none;
+            padding: 9px 16px;
             border: none;
-            border-radius: 6px;
+            border-radius: 10px;
             cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: 500;
-            transition: all 0.2s;
+            font-size: 0.82rem;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, opacity 0.2s ease;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(15, 23, 42, 0.12);
+        }
+
+        button:active {
+            transform: translateY(0);
         }
 
         .btn-primary {
-            background: var(--accent);
-            color: #000;
+            background: linear-gradient(135deg, var(--md-primary), var(--md-primary-strong));
+            color: #fff;
+            box-shadow: 0 6px 16px rgba(25, 118, 210, 0.25);
         }
 
         .btn-primary:hover {
-            background: var(--accent-hover);
-            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(25, 118, 210, 0.3);
         }
 
         .btn-secondary {
-            background: var(--bg-card);
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
+            background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(240,244,250,0.96));
+            color: var(--md-text);
+            border: 1px solid var(--md-outline);
+            box-shadow: var(--md-shadow-soft);
         }
 
         .btn-secondary:hover {
-            background: var(--bg-hover);
+            background: rgba(247, 249, 252, 0.98);
         }
 
         .btn-danger {
-            background: var(--danger);
+            background: linear-gradient(135deg, #ef5350, #d32f2f);
             color: white;
+            box-shadow: 0 6px 16px rgba(211, 47, 47, 0.2);
         }
 
-        .btn-danger:hover {
-            background: #c0392b;
-        }
-
-        /* 搜索框 */
         .search-box {
-            padding: 12px 20px;
-            border-bottom: 1px solid var(--border-color);
+            padding: 12px 18px 10px;
+            border-bottom: 1px solid var(--md-outline);
         }
 
         .search-box input {
-            width: 100%;
-            padding: 8px 12px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            color: var(--text-primary);
-            font-size: 0.9rem;
+            padding: 10px 12px;
         }
 
-        .search-box input:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
-
-        /* 命令树 */
         .tree-container {
             flex: 1;
             overflow-y: auto;
-            padding: 8px 0;
+            padding: 8px 0 12px;
         }
 
-        .tree-container::-webkit-scrollbar {
-            width: 6px;
+        .tree-container::-webkit-scrollbar,
+        .command-list::-webkit-scrollbar,
+        .builder-section::-webkit-scrollbar,
+        #log::-webkit-scrollbar {
+            width: 8px;
         }
 
-        .tree-container::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .tree-container::-webkit-scrollbar-thumb {
-            background: var(--border-color);
-            border-radius: 3px;
+        .tree-container::-webkit-scrollbar-thumb,
+        .command-list::-webkit-scrollbar-thumb,
+        .builder-section::-webkit-scrollbar-thumb,
+        #log::-webkit-scrollbar-thumb {
+            background: rgba(100, 116, 139, 0.35);
+            border-radius: 12px;
         }
 
         .cmd-tree {
@@ -201,9 +241,9 @@
 
         .cmd-tree ul {
             list-style: none;
-            padding-left: 20px;
+            padding-left: 18px;
             overflow: hidden;
-            transition: max-height 0.3s ease;
+            transition: max-height 0.25s ease;
         }
 
         .cmd-tree ul.collapsed {
@@ -213,31 +253,33 @@
         .cmd-node {
             display: flex;
             align-items: center;
-            gap: 6px;
-            padding: 6px 20px;
+            gap: 8px;
+            padding: 8px 16px;
             cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.15s;
-            border-left: 2px solid transparent;
+            border-radius: 10px;
+            margin: 2px 8px;
+            color: var(--md-text);
+            transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
         }
 
         .cmd-node:hover {
-            background: var(--bg-hover);
-            border-left-color: var(--accent);
+            background: rgba(25, 118, 210, 0.05);
+            box-shadow: inset 0 0 0 1px rgba(25, 118, 210, 0.08);
         }
 
         .cmd-node.active {
-            background: var(--bg-hover);
-            border-left-color: var(--accent);
-            color: var(--accent);
+            background: var(--md-primary-soft);
+            color: var(--md-primary-strong);
+            box-shadow: inset 0 0 0 1px rgba(25, 118, 210, 0.12);
         }
 
         .cmd-node .toggle {
-            font-size: 0.7rem;
-            color: var(--text-secondary);
-            width: 12px;
+            width: 14px;
             text-align: center;
-            transition: transform 0.2s;
+            color: var(--md-text-soft);
+            font-size: 0.7rem;
+            transition: transform 0.2s ease;
+            flex-shrink: 0;
         }
 
         .cmd-node .toggle.expanded {
@@ -245,17 +287,18 @@
         }
 
         .cmd-node .name {
-            font-weight: 500;
+            font-weight: 600;
+            letter-spacing: 0.01em;
         }
 
         .cmd-node .desc {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
             margin-left: auto;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 140px;
+            max-width: 120px;
+            color: var(--md-text-soft);
+            font-size: 0.72rem;
         }
 
         /* 主区域 */
@@ -367,6 +410,152 @@
             border: 1px solid var(--border-color);
             color: var(--text-primary);
             border-radius: 6px;
+        }
+
+        .preview-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 12px;
+            align-items: center;
+        }
+
+        .preview-actions input {
+            flex: 1 1 200px;
+            min-width: 160px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid var(--md-outline);
+            background: rgba(255,255,255,0.9);
+        }
+
+        .window-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.42);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 24px;
+        }
+
+        .window-backdrop.open {
+            display: flex;
+        }
+
+        .window-panel {
+            width: min(680px, 90vw);
+            max-height: 82vh;
+            background: var(--md-surface);
+            border: 1px solid var(--md-outline);
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: var(--md-shadow);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .window-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 16px 18px;
+            border-bottom: 1px solid var(--md-outline);
+            background: linear-gradient(180deg, rgba(25,118,210,0.06), rgba(255,255,255,0.02));
+        }
+
+        .window-header h3 {
+            font-size: 1rem;
+            color: var(--md-primary);
+        }
+
+        .window-body {
+            padding: 18px;
+            overflow-y: auto;
+        }
+
+        .window-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            border-top: 1px solid var(--md-outline);
+            padding: 14px 18px;
+            background: rgba(247,249,252,0.8);
+        }
+
+        .window-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            width: 100%;
+            margin-bottom: 12px;
+        }
+
+        .window-row input,
+        .window-row select {
+            flex: 1 1 180px;
+            min-width: 140px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid var(--md-outline);
+            background: rgba(255,255,255,0.92);
+        }
+
+        .compact-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 260px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .compact-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 10px 12px;
+            background: rgba(238,243,255,0.52);
+            border: 1px solid var(--md-outline);
+            border-radius: 10px;
+        }
+
+        .compact-item .compact-text {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: var(--md-text);
+            font-size: 0.82rem;
+        }
+
+        .player-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .player-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 10px 12px;
+            border: 1px solid var(--md-outline);
+            border-radius: 10px;
+            background: rgba(255,255,255,0.9);
+        }
+
+        .player-item .name {
+            flex: 1;
+            color: var(--md-text);
+            font-size: 0.85rem;
         }
 
         .command-list {
@@ -588,39 +777,40 @@
         /* 日志 */
         .log-section {
             height: 200px;
-            border-top: 1px solid var(--border-color);
+            border-top: 1px solid var(--md-outline);
             display: flex;
             flex-direction: column;
+            background: rgba(15, 23, 42, 0.96);
+            overflow: hidden;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
         }
 
         .log-header {
-            padding: 8px 24px;
-            background: var(--bg-secondary);
+            padding: 10px 24px;
+            background: rgba(31, 41, 55, 0.96);
             display: flex;
             justify-content: space-between;
             align-items: center;
             font-size: 0.8rem;
-            color: var(--text-secondary);
+            color: rgba(255,255,255,0.74);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .log-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         #log {
             flex: 1;
-            background: #050510;
-            color: var(--text-primary);
+            background: rgba(2, 6, 23, 0.97);
+            color: rgba(255,255,255,0.92);
             font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 0.85rem;
+            font-size: 0.84rem;
             padding: 12px 24px;
             overflow-y: auto;
-            line-height: 1.6;
-        }
-
-        #log::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        #log::-webkit-scrollbar-thumb {
-            background: var(--border-color);
-            border-radius: 4px;
+            line-height: 1.65;
         }
 
         .log-entry {
@@ -629,24 +819,21 @@
         }
 
         .log-time {
-            color: var(--text-secondary);
+            color: rgba(255,255,255,0.56);
             margin-right: 8px;
         }
 
-        .log-send {
-            color: var(--info);
+        .log-send { color: #90caf9; }
+        .log-recv { color: #81c784; }
+        .log-error { color: #ef9a9a; }
+        .log-info { color: #ffcc80; }
+
+        .log-section.collapsed {
+            height: 52px;
         }
 
-        .log-recv {
-            color: var(--success);
-        }
-
-        .log-error {
-            color: var(--danger);
-        }
-
-        .log-info {
-            color: var(--warning);
+        .log-section.collapsed #log {
+            display: none;
         }
 
         /* 响应式 */
@@ -784,6 +971,8 @@
             <div class="btn-group">
                 <button class="btn-primary" onclick="connectRCON()">连接</button>
                 <button class="btn-secondary" onclick="disconnectRCON()">断开</button>
+                <button class="btn-secondary" onclick="openCommandGroupWindow()">命令组</button>
+                <button class="btn-secondary" onclick="openPlayerManagerWindow()">玩家管理</button>
             </div>
         </div>
         <div class="search-box">
@@ -800,12 +989,16 @@
         <div class="preview-section">
             <div class="preview-label">命令预览</div>
             <div id="command-preview">give player_name minecraft:diamond_sword 1</div>
+            <div class="preview-actions">
+                <input id="saved-command-name" type="text" placeholder="命令名称" />
+                <button class="btn-primary" onclick="saveCurrentCommand()">保存命令</button>
+            </div>
         </div>
         <div class="builder-section" id="builder-area">
             <!-- 动态生成 -->
         </div>
 
-        <div class="utility-panel">
+        <div class="utility-panel" style="display:none;">
             <div class="utility-card collapsible-panel">
                 <div class="panel-header">
                     <h4>💾 命令保存 / 批量执行</h4>
@@ -813,7 +1006,7 @@
                 </div>
                 <div class="panel-body">
                     <div class="utility-row">
-                        <input id="saved-command-name" type="text" placeholder="命令名称" />
+                        <input id="saved-command-name-hidden" type="text" placeholder="命令名称" />
                         <button class="btn-secondary" onclick="saveCurrentCommand()">保存命令</button>
                     </div>
                     <div class="utility-row">
@@ -847,12 +1040,62 @@
             <label style="display:flex;align-items:center;gap:6px;color:var(--text-secondary);font-size:0.8rem;"><input type="checkbox" id="copy-leading-slash"> /</label>
             <label style="display:flex;align-items:center;gap:6px;color:var(--text-secondary);font-size:0.8rem;"><input type="checkbox" id="copy-at-selector"> @</label>
         </div>
-        <div class="log-section">
+        <div class="log-section" id="log-section">
             <div class="log-header">
                 <span>📜 终端日志</span>
-                <button class="btn-secondary" style="padding:4px 10px;font-size:0.75rem;" onclick="clearLog()">清空</button>
+                <div class="log-actions">
+                    <button class="btn-secondary" id="toggle-log" style="padding:4px 10px;font-size:0.75rem;" onclick="toggleLogPanel()">折叠</button>
+                    <button class="btn-secondary" style="padding:4px 10px;font-size:0.75rem;" onclick="clearLog()">清空</button>
+                </div>
             </div>
             <div id="log"></div>
+        </div>
+    </div>
+
+    <div id="command-group-window" class="window-backdrop" aria-hidden="true">
+        <div class="window-panel" role="dialog" aria-modal="true" aria-labelledby="command-group-title">
+            <div class="window-header">
+                <h3 id="command-group-title">📁 命令组管理</h3>
+                <button class="btn-secondary" onclick="closeCommandGroupWindow()">关闭</button>
+            </div>
+            <div class="window-body">
+                <div class="window-row">
+                    <input id="new-group-name" type="text" placeholder="新建命令组名称" />
+                    <button class="btn-primary" onclick="createCommandGroup()">创建组</button>
+                </div>
+                <div class="window-row">
+                    <select id="command-group-select"></select>
+                    <button class="btn-secondary" onclick="addCurrentCommandToGroup()">加入当前</button>
+                    <button class="btn-primary" onclick="executeSelectedGroup()">执行组</button>
+                </div>
+                <div id="command-group-list" class="compact-list"></div>
+            </div>
+            <div class="window-footer">
+                <button class="btn-secondary" onclick="closeCommandGroupWindow()">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="player-manager-window" class="window-backdrop" aria-hidden="true">
+        <div class="window-panel" role="dialog" aria-modal="true" aria-labelledby="player-manager-title">
+            <div class="window-header">
+                <h3 id="player-manager-title">👥 玩家命令管理器</h3>
+                <button class="btn-secondary" onclick="closePlayerManagerWindow()">关闭</button>
+            </div>
+            <div class="window-body">
+                <div class="window-row">
+                    <input id="player-name-input" type="text" placeholder="输入玩家名" />
+                    <button class="btn-primary" onclick="addPlayerToManager()">添加玩家</button>
+                </div>
+                <div class="window-row">
+                    <input id="player-command-input" type="text" placeholder="发送给玩家的命令" />
+                    <button class="btn-secondary" onclick="executePlayerCommands()">批量执行</button>
+                </div>
+                <div id="player-manager-list" class="player-list"></div>
+            </div>
+            <div class="window-footer">
+                <button class="btn-secondary" onclick="closePlayerManagerWindow()">关闭</button>
+            </div>
         </div>
     </div>
 
@@ -869,9 +1112,11 @@
 
         const STORAGE_KEY = 'mccg_saved_commands';
         const GROUP_STORAGE_KEY = 'mccg_command_groups';
+        const PLAYER_STORAGE_KEY = 'mccg_player_manager';
         let ITEM_OPTIONS = [];
         let ENCHANT_OPTIONS = [];
         let POTION_EFFECT_OPTIONS = [];
+        let playerManager = [];
 
         function sortCommandTree(nodes) {
             if (!Array.isArray(nodes)) return [];
@@ -888,37 +1133,43 @@
             try {
                 const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
                 const groups = JSON.parse(localStorage.getItem(GROUP_STORAGE_KEY) || '[]');
+                const players = JSON.parse(localStorage.getItem(PLAYER_STORAGE_KEY) || '[]');
                 savedCommands = Array.isArray(saved) ? saved : [];
                 commandGroups = Array.isArray(groups) ? groups : [];
+                playerManager = Array.isArray(players) ? players : [];
             } catch (error) {
                 savedCommands = [];
                 commandGroups = [];
+                playerManager = [];
             }
         }
 
         function saveStoredState() {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(savedCommands));
             localStorage.setItem(GROUP_STORAGE_KEY, JSON.stringify(commandGroups));
+            localStorage.setItem(PLAYER_STORAGE_KEY, JSON.stringify(playerManager));
         }
 
         function renderSavedCommands() {
             const list = document.getElementById('saved-command-list');
             const select = document.getElementById('command-group-select');
             const groupList = document.getElementById('command-group-list');
-            if (!list) return;
+            const playerList = document.getElementById('player-manager-list');
 
-            if (!savedCommands.length) {
-                list.innerHTML = '<div class="saved-command-item"><span class="saved-command-text">暂无保存命令</span></div>';
-            } else {
-                list.innerHTML = savedCommands.map((saved) => `
-                    <div class="saved-command-item">
-                        <span class="saved-command-text">${escapeHtml(saved.name || '未命名命令')}</span>
-                        <div class="saved-command-action">
-                            <button class="btn-secondary" onclick="executeSavedCommand('${saved.id}')">执行</button>
-                            <button class="btn-secondary" onclick="removeSavedCommand('${saved.id}')">删除</button>
+            if (list) {
+                if (!savedCommands.length) {
+                    list.innerHTML = '<div class="saved-command-item"><span class="saved-command-text">暂无保存命令</span></div>';
+                } else {
+                    list.innerHTML = savedCommands.map((saved) => `
+                        <div class="saved-command-item">
+                            <span class="saved-command-text">${escapeHtml(saved.name || '未命名命令')}</span>
+                            <div class="saved-command-action">
+                                <button class="btn-secondary" onclick="executeSavedCommand('${saved.id}')">执行</button>
+                                <button class="btn-secondary" onclick="removeSavedCommand('${saved.id}')">删除</button>
+                            </div>
                         </div>
-                    </div>
-                `).join('');
+                    `).join('');
+                }
             }
 
             if (groupList) {
@@ -943,15 +1194,111 @@
                     : '<option value="">请选择命令组</option>';
                 select.innerHTML = options;
             }
+
+            if (playerList) {
+                if (!playerManager.length) {
+                    playerList.innerHTML = '<div class="player-item"><span class="name">暂无玩家</span></div>';
+                } else {
+                    playerList.innerHTML = playerManager.map((player) => `
+                        <div class="player-item">
+                            <span class="name">${escapeHtml(player.name)}</span>
+                            <div class="saved-command-action">
+                                <button class="btn-secondary" onclick="runPlayerCommand('${escapeHtml(player.name).replace(/'/g, '&apos;')}')">执行</button>
+                                <button class="btn-secondary" onclick="removePlayerFromManager('${player.id}')">删除</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }
         }
 
         function createUuid() {
             return 'cmd-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
         }
 
+        function openCommandGroupWindow() {
+            const modal = document.getElementById('command-group-window');
+            if (!modal) return;
+            modal.classList.add('open');
+            modal.setAttribute('aria-hidden', 'false');
+            renderSavedCommands();
+        }
+
+        function closeCommandGroupWindow() {
+            const modal = document.getElementById('command-group-window');
+            if (!modal) return;
+            modal.classList.remove('open');
+            modal.setAttribute('aria-hidden', 'true');
+        }
+
+        function openPlayerManagerWindow() {
+            const modal = document.getElementById('player-manager-window');
+            if (!modal) return;
+            modal.classList.add('open');
+            modal.setAttribute('aria-hidden', 'false');
+            renderSavedCommands();
+        }
+
+        function closePlayerManagerWindow() {
+            const modal = document.getElementById('player-manager-window');
+            if (!modal) return;
+            modal.classList.remove('open');
+            modal.setAttribute('aria-hidden', 'true');
+        }
+
+        function addPlayerToManager() {
+            const input = document.getElementById('player-name-input');
+            const name = (input?.value || '').trim();
+            if (!name) {
+                log('请输入玩家名', 'error');
+                return;
+            }
+            if (!playerManager.some((player) => player.name.toLowerCase() === name.toLowerCase())) {
+                playerManager.push({ id: createUuid(), name });
+                saveStoredState();
+                renderSavedCommands();
+                log('已添加玩家：' + name, 'info');
+            } else {
+                log('玩家已存在：' + name, 'info');
+            }
+            if (input) input.value = '';
+        }
+
+        function removePlayerFromManager(id) {
+            playerManager = playerManager.filter((player) => player.id !== id);
+            saveStoredState();
+            renderSavedCommands();
+            log('已删除玩家', 'info');
+        }
+
+        function runPlayerCommand(playerName) {
+            const command = (document.getElementById('player-command-input')?.value || '').trim();
+            if (!command) {
+                log('请先输入要发送给玩家的命令', 'error');
+                return;
+            }
+            sendCommandRequest(command.replace(/\{player\}/g, playerName));
+        }
+
+        function executePlayerCommands() {
+            const command = (document.getElementById('player-command-input')?.value || '').trim();
+            if (!command) {
+                log('请先输入批量命令', 'error');
+                return;
+            }
+            if (!playerManager.length) {
+                log('玩家列表为空', 'info');
+                return;
+            }
+            playerManager.forEach((player) => {
+                sendCommandRequest(command.replace(/\{player\}/g, player.name));
+            });
+        }
+
         function saveCurrentCommand() {
             const input = document.getElementById('saved-command-name');
-            const name = (input?.value || '').trim() || prompt('请输入该命令的名称：', '快捷命令') || '快捷命令';
+            const backupInput = document.getElementById('saved-command-name-hidden');
+            const name = (input?.value || backupInput?.value || '').trim() || prompt('请输入该命令的名称：', '快捷命令') || '快捷命令';
             const command = currentCommandString.trim();
             if (!command) {
                 log('当前没有命令可保存', 'error');
@@ -962,6 +1309,7 @@
             saveStoredState();
             renderSavedCommands();
             if (input) input.value = '';
+            if (backupInput) backupInput.value = '';
             log('已保存命令：' + name, 'info');
         }
 
@@ -1696,11 +2044,11 @@
             if (connected) {
                 dot.classList.add('connected');
                 text.textContent = '已连接';
-                text.style.color = 'var(--success)';
+                text.style.color = 'var(--md-success)';
             } else {
                 dot.classList.remove('connected');
                 text.textContent = '未连接';
-                text.style.color = 'var(--text-secondary)';
+                text.style.color = 'var(--md-text-soft)';
             }
         }
 
@@ -1757,6 +2105,17 @@
 
         function clearLog() {
             document.getElementById('log').innerHTML = '';
+        }
+
+        function toggleLogPanel() {
+            const section = document.getElementById('log-section');
+            const toggleButton = document.getElementById('toggle-log');
+            if (!section || !toggleButton) return;
+
+            const isCollapsed = section.classList.toggle('collapsed');
+            toggleButton.textContent = isCollapsed ? '展开' : '折叠';
+            toggleButton.setAttribute('aria-expanded', String(!isCollapsed));
+            section.setAttribute('aria-expanded', String(!isCollapsed));
         }
 
         function log(msg, type = 'info') {
