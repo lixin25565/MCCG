@@ -34,6 +34,7 @@
             height: 100vh;
             display: flex;
             overflow: hidden;
+            overflow-x: hidden;
         }
 
         /* 侧边栏 */
@@ -662,8 +663,12 @@
                 min-height: 100vh;
                 overflow: auto;
             }
-            #sidebar {
+            #sidebar,
+            #main {
+                min-width: 0;
                 width: 100%;
+            }
+            #sidebar {
                 height: 42vh;
                 min-height: 360px;
                 border-right: none;
@@ -671,6 +676,27 @@
             }
             #main {
                 min-height: 58vh;
+            }
+            .utility-row,
+            .form-row,
+            .nbt-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .form-row label {
+                min-width: 0;
+                width: 100%;
+            }
+            .form-row input,
+            .form-row select,
+            .form-row textarea,
+            .utility-row input,
+            .utility-row select,
+            .nbt-row input,
+            .nbt-row select {
+                min-width: 0;
+                width: 100%;
+                flex: 1 1 100%;
             }
             .action-bar {
                 flex-wrap: wrap;
@@ -837,11 +863,12 @@
         let isConnected = false;
         let savedCommands = [];
         let commandGroups = [];
+        let COMMAND_SPECS = {};
+        let COMMON_COMMAND_PRIORITY = [];
+        let HIDDEN_COMMANDS = new Set();
 
         const STORAGE_KEY = 'mccg_saved_commands';
         const GROUP_STORAGE_KEY = 'mccg_command_groups';
-        const COMMON_COMMAND_PRIORITY = ['effect', 'give', 'gamemode', 'op', 'deop', 'stop', 'time', 'weather', 'teleport', 'summon', 'title', 'say', 'msg', 'tellraw'];
-        const HIDDEN_COMMANDS = new Set(['execute', 'scoreboard', 'bossbar', 'attribute', 'loot', 'tellraw']);
         let ITEM_OPTIONS = [];
         let ENCHANT_OPTIONS = [];
         let POTION_EFFECT_OPTIONS = [];
@@ -1125,190 +1152,21 @@
             }
         }
 
-        const COMMAND_SPECS = {
-            give: {
-                label: '给予物品',
-                fields: [
-                    { name: 'target', type: 'selector', label: '目标', default: 'player_name', required: true },
-                    { name: 'item', type: 'item', label: '物品ID', default: 'minecraft:diamond_sword', required: true },
-                    { name: 'count', type: 'int', label: '数量', default: '1', min: 1, max: 64 }
-                ],
-                build: (values) => buildGiveCommand(values)
-            },
-            experience: {
-                label: '经验',
-                subcommands: {
-                    add: {
-                        label: '增加经验',
-                        fields: [
-                            { name: 'target', type: 'selector', label: '对象', default: 'player_name', required: true },
-                            { name: 'amount', type: 'int', label: '数量', default: '10', required: true }
-                        ],
-                        build: (values) => buildCommandFromFields('experience add', values)
-                    },
-                    set: {
-                        label: '设置经验',
-                        fields: [
-                            { name: 'target', type: 'selector', label: '对象', default: 'player_name', required: true },
-                            { name: 'amount', type: 'int', label: '经验值', default: '100', required: true }
-                        ],
-                        build: (values) => buildCommandFromFields('experience set', values)
-                    },
-                    query: {
-                        label: '查询经验',
-                        fields: [
-                            { name: 'target', type: 'selector', label: '对象', default: 'player_name', required: true },
-                            { name: 'type', type: 'enum', label: '类型', default: 'points', options: ['points', 'levels'], required: true }
-                        ],
-                        build: (values) => buildCommandFromFields('experience query', values)
-                    }
-                }
-            },
-            effect: {
-                label: '状态效果',
-                subcommands: {
-                    give: {
-                        label: '给予效果',
-                        fields: [
-                            { name: 'target', type: 'selector', label: '对象', default: 'player_name', required: true },
-                            { name: 'effect', type: 'effect', label: '效果', default: 'minecraft:speed', required: true },
-                            { name: 'seconds', type: 'int', label: '秒数', default: '30', min: 1, max: 100000 },
-                            { name: 'amplifier', type: 'int', label: '等级', default: '0', min: 0, max: 255 },
-                            { name: 'hideParticles', type: 'enum', label: '粒子', default: 'true', options: ['true', 'false'] }
-                        ],
-                        build: (values) => buildCommandFromFields('effect give', values)
-                    },
-                    clear: {
-                        label: '清除效果',
-                        fields: [
-                            { name: 'target', type: 'selector', label: '对象', default: 'player_name', required: true },
-                            { name: 'effect', type: 'effect', label: '效果', default: 'minecraft:speed' }
-                        ],
-                        build: (values) => buildCommandFromFields('effect clear', values)
-                    }
-                }
-            },
-            summon: {
-                label: '召唤实体',
-                fields: [
-                    { name: 'entity', type: 'entity', label: '实体', default: 'minecraft:zombie', required: true },
-                    { name: 'pos', type: 'pos', label: '位置', default: '~ ~1 ~', required: true },
-                    { name: 'nbt', type: 'custom', label: 'NBT', default: '' }
-                ],
-                build: (values) => buildCommandFromFields('summon', values)
-            },
-            teleport: {
-                label: '传送',
-                fields: [
-                    { name: 'targets', type: 'selector', label: '目标', default: 'player_name', required: true },
-                    { name: 'destination', type: 'pos', label: '目的地', default: '~ ~1 ~', required: true }
-                ],
-                build: (values) => buildCommandFromFields('teleport', values)
-            },
-            time: {
-                label: '时间',
-                subcommands: {
-                    set: {
-                        label: '设置时间',
-                        fields: [
-                            { name: 'time', type: 'enum', label: '时间', default: 'day', options: ['day', 'night', 'midnight', 'noon', 'sunset', 'sunrise'], required: true }
-                        ],
-                        build: (values) => buildCommandFromFields('time set', values)
-                    },
-                    add: {
-                        label: '增加时间',
-                        fields: [
-                            { name: 'amount', type: 'int', label: '增量', default: '100', required: true }
-                        ],
-                        build: (values) => buildCommandFromFields('time add', values)
-                    },
-                    query: {
-                        label: '查询时间',
-                        fields: [
-                            { name: 'type', type: 'enum', label: '类型', default: 'daytime', options: ['daytime', 'gametime', 'day'], required: true }
-                        ],
-                        build: (values) => buildCommandFromFields('time query', values)
-                    }
-                }
-            },
-            weather: {
-                label: '天气',
-                subcommands: {
-                    clear: { label: '晴天', fields: [{ name: 'duration', type: 'int', label: '时长', default: '6000' }], build: (values) => buildCommandFromFields('weather clear', values) },
-                    rain: { label: '下雨', fields: [{ name: 'duration', type: 'int', label: '时长', default: '6000' }], build: (values) => buildCommandFromFields('weather rain', values) },
-                    thunder: { label: '雷雨', fields: [{ name: 'duration', type: 'int', label: '时长', default: '6000' }], build: (values) => buildCommandFromFields('weather thunder', values) }
-                }
-            },
-            title: {
-                label: '标题',
-                subcommands: {
-                    clear: { label: '清除标题', build: () => 'title clear' },
-                    reset: { label: '重置标题', build: () => 'title reset' },
-                    title: { label: '主标题', fields: [{ name: 'player', type: 'selector', label: '玩家', default: 'player_name' }, { name: 'json', type: 'json', label: '标题内容', default: '{"text":"欢迎"}' }], build: (values) => buildCommandFromFields('title title', values) },
-                    subtitle: { label: '副标题', fields: [{ name: 'player', type: 'selector', label: '玩家', default: 'player_name' }, { name: 'json', type: 'json', label: '副标题', default: '{"text":"欢迎"}' }], build: (values) => buildCommandFromFields('title subtitle', values) },
-                    actionbar: { label: '动作栏', fields: [{ name: 'player', type: 'selector', label: '玩家', default: 'player_name' }, { name: 'json', type: 'json', label: '文本', default: '{"text":"欢迎"}' }], build: (values) => buildCommandFromFields('title actionbar', values) },
-                    times: { label: '动画时间', fields: [{ name: 'fadeIn', type: 'int', label: '淡入', default: '20' }, { name: 'stay', type: 'int', label: '停留', default: '60' }, { name: 'fadeOut', type: 'int', label: '淡出', default: '20' }], build: (values) => buildCommandFromFields('title times', values) }
-                }
-            },
-            execute: {
-                label: '执行上下文',
-                subcommands: {
-                    as: { label: '以目标实体身份执行', fields: [{ name: 'target', type: 'selector', label: '目标', default: 'player_name', required: true }, { name: 'at', type: 'selector', label: '附加位置', default: 'player_name' }], build: (values) => buildCommandFromFields('execute as', values) },
-                    at: { label: '在目标实体位置执行', fields: [{ name: 'target', type: 'selector', label: '目标', default: 'player_name', required: true }, { name: 'run', type: 'text', label: '命令', default: 'say hello' }], build: (values) => buildCommandFromFields('execute at', values) },
-                    run: { label: '运行命令', fields: [{ name: 'command', type: 'text', label: '命令', default: 'say hello', required: true }], build: (values) => buildCommandFromFields('execute run', values) },
-                    if: { label: '条件判断', fields: [{ name: 'condition', type: 'text', label: '条件', default: 'entity player_name', required: true }], build: (values) => buildCommandFromFields('execute if', values) },
-                    unless: { label: '条件否定判断', fields: [{ name: 'condition', type: 'text', label: '条件', default: 'entity player_name', required: true }], build: (values) => buildCommandFromFields('execute unless', values) },
-                    positioned: { label: '指定位置', fields: [{ name: 'pos', type: 'pos', label: '坐标', default: '~ ~1 ~', required: true }], build: (values) => buildCommandFromFields('execute positioned', values) },
-                    rotated: { label: '指定旋转', fields: [{ name: 'rot', type: 'text', label: '旋转', default: '~ 90', required: true }], build: (values) => buildCommandFromFields('execute rotated', values) }
-                }
-            },
-            scoreboard: {
-                label: '计分板',
-                subcommands: {
-                    objectives: {
-                        label: '目标管理',
-                        subcommands: {
-                            add: { label: '新增目标', fields: [{ name: 'objective', type: 'text', label: '目标名', default: 'deaths', required: true }, { name: 'criterion', type: 'text', label: '判定器', default: 'deathCount', required: true }], build: (values) => buildCommandFromFields('scoreboard objectives add', values) },
-                            list: { label: '列出目标', build: () => 'scoreboard objectives list' },
-                            remove: { label: '删除目标', fields: [{ name: 'objective', type: 'text', label: '目标名', default: 'deaths', required: true }], build: (values) => buildCommandFromFields('scoreboard objectives remove', values) }
-                        }
-                    },
-                    players: {
-                        label: '玩家分数',
-                        subcommands: {
-                            add: { label: '增加分数', fields: [{ name: 'target', type: 'selector', label: '玩家', default: 'player_name', required: true }, { name: 'objective', type: 'text', label: '目标', default: 'deaths', required: true }, { name: 'score', type: 'int', label: '分数', default: '1', required: true }], build: (values) => buildCommandFromFields('scoreboard players add', values) },
-                            set: { label: '设置分数', fields: [{ name: 'target', type: 'selector', label: '玩家', default: 'player_name', required: true }, { name: 'objective', type: 'text', label: '目标', default: 'deaths', required: true }, { name: 'score', type: 'int', label: '分数', default: '1', required: true }], build: (values) => buildCommandFromFields('scoreboard players set', values) },
-                            get: { label: '查询分数', fields: [{ name: 'target', type: 'selector', label: '玩家', default: 'player_name', required: true }, { name: 'objective', type: 'text', label: '目标', default: 'deaths', required: true }], build: (values) => buildCommandFromFields('scoreboard players get', values) }
-                        }
-                    }
-                }
-            },
-            bossbar: {
-                label: 'Boss栏',
-                subcommands: {
-                    add: { label: '新建Boss栏', fields: [{ name: 'id', type: 'text', label: 'Boss栏ID', default: 'boss1', required: true }, { name: 'name', type: 'json', label: '名称', default: '{"text":"Boss"}' }], build: (values) => buildCommandFromFields('bossbar add', values) },
-                    set: { label: '设置Boss栏属性', fields: [{ name: 'id', type: 'text', label: 'Boss栏ID', default: 'boss1', required: true }, { name: 'value', type: 'text', label: '属性', default: 'name', required: true }, { name: 'arg', type: 'text', label: '参数', default: '{"text":"Boss"}', required: true }], build: (values) => buildCommandFromFields('bossbar set', values) },
-                    remove: { label: '移除Boss栏', fields: [{ name: 'id', type: 'text', label: 'Boss栏ID', default: 'boss1', required: true }], build: (values) => buildCommandFromFields('bossbar remove', values) }
-                }
-            },
-            attribute: {
-                label: '属性',
-                subcommands: {
-                    get: { label: '查询属性', fields: [{ name: 'target', type: 'selector', label: '目标', default: 'player_name', required: true }, { name: 'attribute', type: 'text', label: '属性', default: 'minecraft:generic.attack_damage', required: true }], build: (values) => buildCommandFromFields('attribute get', values) },
-                    set: { label: '设置属性', fields: [{ name: 'target', type: 'selector', label: '目标', default: 'player_name', required: true }, { name: 'attribute', type: 'text', label: '属性', default: 'minecraft:generic.attack_damage', required: true }, { name: 'value', type: 'number', label: '值', default: '1.0', required: true }], build: (values) => buildCommandFromFields('attribute set', values) }
-                }
-            },
-            loot: {
-                label: '战利品',
-                subcommands: {
-                    give: { label: '给予战利品', fields: [{ name: 'targets', type: 'selector', label: '目标', default: 'player_name', required: true }, { name: 'loot_table', type: 'text', label: '战利品表', default: 'minecraft:chests/simple_dungeon', required: true }], build: (values) => buildCommandFromFields('loot give', values) },
-                    spawn: { label: '生成战利品', fields: [{ name: 'pos', type: 'pos', label: '坐标', default: '~ ~1 ~', required: true }, { name: 'loot_table', type: 'text', label: '战利品表', default: 'minecraft:chests/simple_dungeon', required: true }], build: (values) => buildCommandFromFields('loot spawn', values) }
-                }
-            },
-            say: { label: '广播消息', fields: [{ name: 'message', type: 'text', label: '消息', default: 'hello', required: true }], build: (values) => buildCommandFromFields('say', values) },
-            msg: { label: '私聊', fields: [{ name: 'target', type: 'selector', label: '目标', default: 'player_name', required: true }, { name: 'message', type: 'text', label: '消息', default: 'hello', required: true }], build: (values) => buildCommandFromFields('tell', values) },
-            tellraw: { label: 'JSON消息', fields: [{ name: 'target', type: 'selector', label: '目标', default: 'player_name' }, { name: 'json', type: 'json', label: 'JSON', default: '{"text":"hello"}', required: true }], build: (values) => buildCommandFromFields('tellraw', values) }
-        };
+        function loadCommandMetadata() {
+            return fetch('/api/command-specs')
+                .then((res) => res.json())
+                .then((data) => {
+                    COMMON_COMMAND_PRIORITY = Array.isArray(data.priority) ? data.priority : [];
+                    HIDDEN_COMMANDS = new Set(Array.isArray(data.hidden_commands) ? data.hidden_commands : []);
+                    COMMAND_SPECS = data.specs || {};
+                })
+                .catch((error) => {
+                    console.error('加载命令元数据失败', error);
+                    COMMON_COMMAND_PRIORITY = [];
+                    HIDDEN_COMMANDS = new Set();
+                    COMMAND_SPECS = {};
+                });
+        }
 
         function resolveCommandSpec(path) {
             if (!path || path.length === 0) {
@@ -1724,6 +1582,7 @@
         async function init() {
             loadStoredState();
             renderSavedCommands();
+            await loadCommandMetadata();
             await loadCatalogs();
             const res = await fetch('/api/commands');
             commandTree = sortCommandTree(await res.json());
