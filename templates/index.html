@@ -486,6 +486,10 @@
             background: rgba(247,249,252,0.8);
         }
 
+        .window-close {
+            min-width: 86px;
+        }
+
         .window-row {
             display: flex;
             gap: 10px;
@@ -1056,7 +1060,7 @@
         <div class="window-panel" role="dialog" aria-modal="true" aria-labelledby="command-group-title">
             <div class="window-header">
                 <h3 id="command-group-title">📁 命令组管理</h3>
-                <button class="btn-secondary" onclick="closeCommandGroupWindow()">关闭</button>
+                <button class="btn-secondary window-close" onclick="closeCommandGroupWindow()">关闭</button>
             </div>
             <div class="window-body">
                 <div class="window-row">
@@ -1070,9 +1074,6 @@
                 </div>
                 <div id="command-group-list" class="compact-list"></div>
             </div>
-            <div class="window-footer">
-                <button class="btn-secondary" onclick="closeCommandGroupWindow()">关闭</button>
-            </div>
         </div>
     </div>
 
@@ -1080,7 +1081,7 @@
         <div class="window-panel" role="dialog" aria-modal="true" aria-labelledby="player-manager-title">
             <div class="window-header">
                 <h3 id="player-manager-title">👥 玩家命令管理器</h3>
-                <button class="btn-secondary" onclick="closePlayerManagerWindow()">关闭</button>
+                <button class="btn-secondary window-close" onclick="closePlayerManagerWindow()">关闭</button>
             </div>
             <div class="window-body">
                 <div class="window-row">
@@ -1088,13 +1089,10 @@
                     <button class="btn-primary" onclick="addPlayerToManager()">添加玩家</button>
                 </div>
                 <div class="window-row">
-                    <input id="player-command-input" type="text" placeholder="发送给玩家的命令" />
+                    <input id="player-command-input" type="text" placeholder="发送给玩家的命令，可使用 {player}" />
                     <button class="btn-secondary" onclick="executePlayerCommands()">批量执行</button>
                 </div>
                 <div id="player-manager-list" class="player-list"></div>
-            </div>
-            <div class="window-footer">
-                <button class="btn-secondary" onclick="closePlayerManagerWindow()">关闭</button>
             </div>
         </div>
     </div>
@@ -1203,7 +1201,7 @@
                         <div class="player-item">
                             <span class="name">${escapeHtml(player.name)}</span>
                             <div class="saved-command-action">
-                                <button class="btn-secondary" onclick="runPlayerCommand('${escapeHtml(player.name).replace(/'/g, '&apos;')}')">执行</button>
+                                <button class="btn-secondary" onclick="runPlayerCommand('${String(player.name).replace(/'/g, '\\'').replace(/"/g, '&quot;')}')">执行</button>
                                 <button class="btn-secondary" onclick="removePlayerFromManager('${player.id}')">删除</button>
                             </div>
                         </div>
@@ -1271,13 +1269,32 @@
             log('已删除玩家', 'info');
         }
 
+        function buildPlayerCommandList(commandText) {
+            const command = String(commandText || '').trim();
+            if (!command) return [];
+            const names = playerManager.length ? playerManager.map((player) => player.name) : ['player_name'];
+            if (!/\{player\}|\bplayer_name\b/i.test(command)) {
+                return [command];
+            }
+            return names.map((playerName) => command
+                .replace(/\{player\}/gi, playerName)
+                .replace(/\bplayer_name\b/gi, playerName));
+        }
+
         function runPlayerCommand(playerName) {
             const command = (document.getElementById('player-command-input')?.value || '').trim();
             if (!command) {
                 log('请先输入要发送给玩家的命令', 'error');
                 return;
             }
-            sendCommandRequest(command.replace(/\{player\}/g, playerName));
+            const commands = buildPlayerCommandList(command);
+            const targetName = String(playerName || '').trim();
+            if (!targetName) {
+                log('玩家名为空', 'error');
+                return;
+            }
+            const resolved = commands.map((item) => item.replace(/\{player\}/gi, targetName).replace(/\bplayer_name\b/gi, targetName));
+            resolved.forEach((item) => sendCommandRequest(item));
         }
 
         function executePlayerCommands() {
@@ -1290,9 +1307,8 @@
                 log('玩家列表为空', 'info');
                 return;
             }
-            playerManager.forEach((player) => {
-                sendCommandRequest(command.replace(/\{player\}/g, player.name));
-            });
+            const generated = buildPlayerCommandList(command);
+            generated.forEach((item) => sendCommandRequest(item));
         }
 
         function saveCurrentCommand() {
@@ -2038,6 +2054,13 @@
             log(data.message || '已断开', 'info');
         }
 
+        function toggleConnectionInputs(visible) {
+            const inputs = Array.from(document.querySelectorAll('#host, #port, #password'));
+            inputs.forEach((input) => {
+                input.style.display = visible ? '' : 'none';
+            });
+        }
+
         function updateStatus(connected) {
             const dot = document.getElementById('status-dot');
             const text = document.getElementById('status-text');
@@ -2045,10 +2068,12 @@
                 dot.classList.add('connected');
                 text.textContent = '已连接';
                 text.style.color = 'var(--md-success)';
+                toggleConnectionInputs(false);
             } else {
                 dot.classList.remove('connected');
                 text.textContent = '未连接';
                 text.style.color = 'var(--md-text-soft)';
+                toggleConnectionInputs(true);
             }
         }
 
@@ -2084,7 +2109,10 @@
         }
 
         async function sendCommand() {
-            await sendCommandRequest(currentCommandString);
+            const commands = buildPlayerCommandList(currentCommandString);
+            for (const command of commands) {
+                await sendCommandRequest(command);
+            }
         }
 
         function buildCopyCommand() {
